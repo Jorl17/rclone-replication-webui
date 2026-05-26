@@ -2,6 +2,8 @@
 
 Web interface for managing file replication powered by [rclone](https://rclone.org/).
 
+> **Full documentation** : [sixmon.github.io/rclone-replication-webui](https://sixmon.github.io/rclone-replication-webui/)
+>
 > **Version française** : [README.fr.md](README.fr.md)
 
 ## Screenshots
