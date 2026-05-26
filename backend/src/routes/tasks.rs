@@ -118,12 +118,57 @@ pub async fn create(
 pub async fn get(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
-) -> AppResult<Json<task::Model>> {
-    let task = task::Entity::find_by_id(id)
+) -> AppResult<Json<TaskWithMeta>> {
+    let t = task::Entity::find_by_id(id)
         .one(&state.db)
         .await?
         .ok_or_else(|| AppError::NotFound(format!("Task {id} not found")))?;
-    Ok(Json(task))
+
+    let src_name = remote::Entity::find_by_id(t.source_remote_id)
+        .one(&state.db)
+        .await?
+        .map(|r| r.name)
+        .unwrap_or_default();
+    let dst_name = remote::Entity::find_by_id(t.dest_remote_id)
+        .one(&state.db)
+        .await?
+        .map(|r| r.name)
+        .unwrap_or_default();
+
+    let last_run = task_run::Entity::find()
+        .filter(task_run::Column::TaskId.eq(t.id))
+        .order_by_desc(task_run::Column::StartedAt)
+        .one(&state.db)
+        .await?
+        .map(|r| LastRunSummary {
+            status: r.status,
+            started_at: r.started_at.into(),
+            duration_ms: r.duration_ms,
+        });
+
+    let running = state.running_tasks.contains_key(&t.id);
+
+    Ok(Json(TaskWithMeta {
+        id: t.id,
+        name: t.name,
+        source_remote_id: t.source_remote_id,
+        source_remote_name: src_name,
+        source_path: t.source_path,
+        dest_remote_id: t.dest_remote_id,
+        dest_remote_name: dst_name,
+        dest_path: t.dest_path,
+        cron_expression: t.cron_expression,
+        enabled: t.enabled,
+        rclone_flags: t.rclone_flags,
+        notification_channel_id: t.notification_channel_id,
+        notify_on: t.notify_on,
+        max_retries: t.max_retries,
+        retry_delay_seconds: t.retry_delay_seconds,
+        last_run,
+        running,
+        created_at: t.created_at.into(),
+        updated_at: t.updated_at.into(),
+    }))
 }
 
 pub async fn patch(

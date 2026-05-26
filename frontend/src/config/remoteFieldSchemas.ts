@@ -265,12 +265,18 @@ export const STANDARD_REMOTES: StandardRemoteType[] = [
     label: 'Google Drive',
     fields: [
       {
-        key: 'service_account_credentials',
-        label: 'Service Account (JSON)',
+        key: 'token',
+        label: 'Token OAuth (JSON)',
         type: 'password',
-        required: true,
+        placeholder: '{"access_token":"...","refresh_token":"...","expiry":"..."}',
+        helpText: 'Renseignez Client ID + Client Secret ci-dessous puis cliquez sur « Connecter via OAuth », ou collez un token JSON obtenu via `rclone authorize "drive"`.',
+      },
+      {
+        key: 'service_account_credentials',
+        label: 'Service Account (JSON) — alternative non-interactive',
+        type: 'password',
         placeholder: '{"type":"service_account","project_id":"...","private_key":"..."}',
-        helpText: 'Contenu JSON du fichier de clé du compte de service Google. Coller le JSON complet.',
+        helpText: 'Alternative au token OAuth : JSON complet d\'un compte de service Google. Utile pour les déploiements headless.',
       },
       {
         key: 'scope',
@@ -322,7 +328,7 @@ export const STANDARD_REMOTES: StandardRemoteType[] = [
         type: 'password',
         required: true,
         placeholder: '{"access_token":"...","token_type":"bearer","refresh_token":"...","expiry":"..."}',
-        helpText: 'JSON blob obtenu via `rclone authorize "dropbox"` sur une machine avec navigateur.',
+        helpText: 'Renseignez App key + App secret ci-dessous puis cliquez sur « Connecter via OAuth », ou collez un token JSON obtenu via `rclone authorize "dropbox"`.',
       },
       {
         key: 'client_id',

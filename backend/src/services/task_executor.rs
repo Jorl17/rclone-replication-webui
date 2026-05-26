@@ -90,6 +90,8 @@ pub async fn spawn_task(
             run_id,
             triggered_by: mode.label().to_string(),
             started_at: Utc::now(),
+            log_buffer: std::sync::Arc::new(std::sync::Mutex::new(Vec::new())),
+            log_notify: std::sync::Arc::new(tokio::sync::Notify::new()),
         },
     );
 
@@ -178,7 +180,26 @@ async fn execute_task_background(
     let mut log_buffer = String::new();
     let mut exit_code = 1i32;
     let mut stats: Option<serde_json::Value> = None;
-    let broadcaster = state.sse_broadcaster.clone();
+
+    // Récupère les buffers partagés (pour les SSE qui se connectent en cours d'exécution).
+    let (shared_logs, log_notify) = state
+        .running_tasks
+        .get(&task_id)
+        .map(|rt| (rt.log_buffer.clone(), rt.log_notify.clone()))
+        .expect("running task entry missing");
+
+    // Helper pour pousser une ligne dans le buffer local + le buffer partagé (pour SSE).
+    let push_line = |line: &str,
+                     buf: &mut String,
+                     shared: &std::sync::Arc<std::sync::Mutex<Vec<String>>>,
+                     notify: &std::sync::Arc<tokio::sync::Notify>| {
+        buf.push_str(line);
+        buf.push('\n');
+        if let Ok(mut s) = shared.lock() {
+            s.push(line.to_string());
+        }
+        notify.notify_waiters();
+    };
 
     for attempt in 1..=max_attempts {
         if attempt > 1 {
@@ -187,9 +208,7 @@ async fn execute_task_background(
                 "--- Tentative {attempt}/{max_attempts} dans {delay_secs}s ---"
             );
             tracing::info!("Task {task_id}: {msg}");
-            broadcaster.publish(task_id, SseEvent::Log(msg.clone()));
-            log_buffer.push_str(&msg);
-            log_buffer.push('\n');
+            push_line(&msg, &mut log_buffer, &shared_logs, &log_notify);
             tokio::time::sleep(std::time::Duration::from_secs(delay_secs)).await;
         }
 
@@ -210,18 +229,14 @@ async fn execute_task_background(
             Err(e) => {
                 let msg = format!("Error: {e}");
                 tracing::error!("Failed to spawn rclone for task {task_id}: {e}");
-                log_buffer.push_str(&msg);
-                log_buffer.push('\n');
-                broadcaster.publish(task_id, SseEvent::Log(msg));
+                push_line(&msg, &mut log_buffer, &shared_logs, &log_notify);
                 exit_code = 1;
                 continue; // retry
             }
         };
 
         exit_code = match rclone::stream_output(process, |line| {
-            broadcaster.publish(task_id, SseEvent::Log(line.clone()));
-            log_buffer.push_str(&line);
-            log_buffer.push('\n');
+            push_line(&line, &mut log_buffer, &shared_logs, &log_notify);
         })
         .await
         {
@@ -240,9 +255,7 @@ async fn execute_task_background(
 
         if attempt < max_attempts {
             let msg = format!("--- Échec (code {exit_code}), nouvelle tentative... ---");
-            broadcaster.publish(task_id, SseEvent::Log(msg.clone()));
-            log_buffer.push_str(&msg);
-            log_buffer.push('\n');
+            push_line(&msg, &mut log_buffer, &shared_logs, &log_notify);
         }
     }
 

@@ -15,7 +15,7 @@ pub fn sensitive_fields(remote_type: &str) -> &'static [&'static str] {
         "smb" => &["pass"],
         "azureblob" => &["key", "sas_url"],
         "sharepoint" => &["client_secret"],
-        "drive" => &["service_account_credentials", "client_secret"],
+        "drive" => &["service_account_credentials", "client_secret", "token"],
         "dropbox" => &["token", "client_secret"],
         "b2" => &["key"],
         "local" => &[],

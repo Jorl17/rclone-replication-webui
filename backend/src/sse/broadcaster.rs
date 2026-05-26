@@ -4,9 +4,12 @@ use uuid::Uuid;
 
 const CHANNEL_CAPACITY: usize = 256;
 
+/// Événement diffusé sur le canal SSE par-tâche.
+///
+/// Les logs ligne par ligne sont stockés dans `RunningTask.log_buffer` (accessible aux clients
+/// qui se connectent en cours d'exécution). Le broadcaster ne sert plus qu'à signaler la fin.
 #[derive(Debug, Clone)]
 pub enum SseEvent {
-    Log(String),
     Done { status: String, exit_code: Option<i32>, duration_ms: i64 },
 }
 

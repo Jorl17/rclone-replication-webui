@@ -1,5 +1,6 @@
 pub mod events;
 pub mod notifications;
+pub mod oauth;
 pub mod progress;
 pub mod remotes;
 pub mod runs;
@@ -37,6 +38,9 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/tasks/{id}/runs", get(runs::list_for_task))
         // Global SSE events
         .route("/api/events", get(events::stream_events))
+        // OAuth flow (Dropbox, Google Drive, OneDrive)
+        .route("/api/oauth/start", get(oauth::start))
+        .route("/api/oauth/callback", get(oauth::callback))
         // Runs
         .route("/api/runs/{run_id}", get(runs::get_run))
         // Notifications

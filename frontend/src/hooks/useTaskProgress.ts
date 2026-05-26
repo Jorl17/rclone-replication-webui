@@ -9,10 +9,15 @@ interface ProgressState {
 /**
  * S'abonne au flux SSE de progression d'une tâche.
  *
+ * Le backend renvoie d'abord toutes les lignes déjà accumulées (rattrapage des logs émis
+ * avant la connexion), puis les nouvelles lignes en temps réel jusqu'à l'événement `done`.
+ *
+ * Cela permet de récupérer les logs live même après un rechargement de page, ou pour une
+ * tâche déclenchée par cron sans interaction utilisateur préalable.
+ *
  * @param taskId  - UUID de la tâche à suivre
  * @param running - true si la tâche est en cours (d'après le cache API)
- * @param forceConnect - true pour se connecter immédiatement sans attendre `running`
- *                       (utilisé après un trigger/restore pour éviter la race condition)
+ * @param forceConnect - true pour forcer la connexion sans attendre `running`
  */
 export function useTaskProgress(taskId: string | null, running: boolean, forceConnect = false) {
   const [progress, setProgress] = useState<ProgressState>({ lines: [], done: false, status: null });
@@ -43,18 +48,9 @@ export function useTaskProgress(taskId: string | null, running: boolean, forceCo
     });
 
     es.addEventListener('idle', () => {
-      // La tâche n'est pas encore en cours — réessayer dans 500ms
+      // La tâche n'est pas (ou plus) en cours. On ferme la connexion proprement.
+      setProgress(prev => ({ ...prev, done: true }));
       es.close();
-      const retry = setTimeout(() => {
-        setProgress(prev => {
-          // Si entretemps on a reçu des données, ne pas réinitialiser
-          if (prev.lines.length > 0 || prev.done) return prev;
-          return prev;
-        });
-        // Relancer la connexion en modifiant la ref pour forcer un re-render
-        esRef.current = null;
-      }, 500);
-      return () => clearTimeout(retry);
     });
 
     es.onerror = () => es.close();

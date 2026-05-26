@@ -49,11 +49,15 @@ dashmap = "6"
 # Async stream utilities
 tokio-stream = { version = "0.1", features = ["sync"] }
 futures = "0.3"
+async-stream = "0.3"
 
 # HTTP client (Secret Manager APIs : Scaleway, Azure, Vault, Infisical, Doppler)
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 base64 = "0.22"
 async-trait = "0.1"
+
+# URL encoding for OAuth flows
+urlencoding = "2"
 
 # AWS Secrets Manager
 # default-features = false sur aws-sdk-secretsmanager pour exclure le feature `rustls` (rustls 0.21 legacy),

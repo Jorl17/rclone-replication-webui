@@ -198,7 +198,15 @@ export function RemoteFormPage() {
         {/* Adaptive config section */}
         <div className="pt-1">
           {standardSchema ? (
-            <StandardRemoteFields fields={standardSchema.fields} register={register} errors={errors} isEdit={isEdit} />
+            <StandardRemoteFields
+              fields={standardSchema.fields}
+              remoteType={selectedType}
+              register={register}
+              watch={watch}
+              setValue={setValue}
+              errors={errors}
+              isEdit={isEdit}
+            />
           ) : (
             <GenericConfigFields control={control as never} register={register} />
           )}
