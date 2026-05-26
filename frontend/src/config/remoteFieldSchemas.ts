@@ -261,6 +261,125 @@ export const STANDARD_REMOTES: StandardRemoteType[] = [
     ],
   },
   {
+    value: 'drive',
+    label: 'Google Drive',
+    fields: [
+      {
+        key: 'service_account_credentials',
+        label: 'Service Account (JSON)',
+        type: 'password',
+        required: true,
+        placeholder: '{"type":"service_account","project_id":"...","private_key":"..."}',
+        helpText: 'Contenu JSON du fichier de clé du compte de service Google. Coller le JSON complet.',
+      },
+      {
+        key: 'scope',
+        label: 'Étendue d\'accès (scope)',
+        type: 'select',
+        defaultValue: 'drive',
+        options: [
+          { value: 'drive', label: 'drive — accès complet aux fichiers' },
+          { value: 'drive.readonly', label: 'drive.readonly — lecture seule' },
+          { value: 'drive.file', label: 'drive.file — fichiers créés par rclone uniquement' },
+          { value: 'drive.appfolder', label: 'drive.appfolder — dossier privé rclone' },
+          { value: 'drive.metadata.readonly', label: 'drive.metadata.readonly — métadonnées seules' },
+        ],
+        helpText: 'Permission demandée à l\'API Google Drive.',
+      },
+      {
+        key: 'team_drive',
+        label: 'Shared Drive ID',
+        placeholder: '0AbCdEfGhIjKlMnOpQrSt',
+        helpText: 'ID d\'un Shared Drive (anciennement Team Drive). Laisser vide pour un My Drive standard.',
+      },
+      {
+        key: 'root_folder_id',
+        label: 'Dossier racine (ID)',
+        placeholder: '1aBcD2eFgH3iJkLmNoPqRsTuVwXyZ',
+        helpText: 'ID du dossier qui sert de racine. Visible dans l\'URL Google Drive après /folders/. Laisser vide pour la racine.',
+      },
+      {
+        key: 'client_id',
+        label: 'Client ID OAuth (optionnel)',
+        placeholder: '123456789-abc.apps.googleusercontent.com',
+        helpText: 'Client OAuth personnalisé pour éviter le rate limiting partagé de rclone.',
+      },
+      {
+        key: 'client_secret',
+        label: 'Client Secret OAuth (optionnel)',
+        type: 'password',
+        helpText: 'Requis uniquement si vous avez renseigné un Client ID personnalisé.',
+      },
+    ],
+  },
+  {
+    value: 'dropbox',
+    label: 'Dropbox',
+    fields: [
+      {
+        key: 'token',
+        label: 'Token OAuth (JSON)',
+        type: 'password',
+        required: true,
+        placeholder: '{"access_token":"...","token_type":"bearer","refresh_token":"...","expiry":"..."}',
+        helpText: 'JSON blob obtenu via `rclone authorize "dropbox"` sur une machine avec navigateur.',
+      },
+      {
+        key: 'client_id',
+        label: 'App key (optionnel)',
+        helpText: 'Application key de votre app Dropbox personnalisée. Laisser vide pour utiliser celle de rclone.',
+      },
+      {
+        key: 'client_secret',
+        label: 'App secret (optionnel)',
+        type: 'password',
+        helpText: 'Requis uniquement si vous avez renseigné une App key personnalisée.',
+      },
+      {
+        key: 'impersonate',
+        label: 'Impersonate (Dropbox Business)',
+        placeholder: 'user@example.com',
+        helpText: 'Email de l\'utilisateur à impersonner. Uniquement pour Dropbox Business avec un compte admin.',
+      },
+    ],
+  },
+  {
+    value: 'b2',
+    label: 'Backblaze B2',
+    fields: [
+      {
+        key: 'account',
+        label: 'Application Key ID',
+        required: true,
+        placeholder: '0012ab3c4d5e6f7g',
+        helpText: 'L\'ID de la clé d\'application (recommandé) ou l\'Account ID master.',
+      },
+      {
+        key: 'key',
+        label: 'Application Key',
+        type: 'password',
+        required: true,
+        helpText: 'La valeur secrète de la clé d\'application B2.',
+      },
+      {
+        key: 'endpoint',
+        label: 'Endpoint personnalisé',
+        helpText: 'Laisser vide pour utiliser l\'endpoint par défaut.',
+      },
+      {
+        key: 'hard_delete',
+        label: 'Suppression définitive',
+        type: 'select',
+        defaultValue: 'false',
+        options: [
+          { value: 'false', label: 'Non — masquer les fichiers (versioning)' },
+          { value: 'true', label: 'Oui — supprimer définitivement' },
+        ],
+        helpText: 'Si activé, les fichiers sont supprimés au lieu d\'être versionnés/masqués.',
+      },
+    ],
+  },
+  {
     value: 'local',
     label: 'Local (dossier local)',
     fields: [
@@ -280,10 +399,7 @@ export const STANDARD_REMOTES: StandardRemoteType[] = [
 
 export const ADVANCED_REMOTE_TYPES: { value: string; label: string }[] = [
   { value: 'azurefiles', label: 'Azure Files' },
-  { value: 'drive', label: 'Google Drive' },
   { value: 'onedrive', label: 'OneDrive' },
-  { value: 'dropbox', label: 'Dropbox' },
-  { value: 'b2', label: 'Backblaze B2' },
   { value: 'swift', label: 'OpenStack Swift' },
   { value: 'webdav', label: 'WebDAV' },
   { value: 'http', label: 'HTTP' },

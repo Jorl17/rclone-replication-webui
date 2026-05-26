@@ -15,6 +15,9 @@ pub fn sensitive_fields(remote_type: &str) -> &'static [&'static str] {
         "smb" => &["pass"],
         "azureblob" => &["key", "sas_url"],
         "sharepoint" => &["client_secret"],
+        "drive" => &["service_account_credentials", "client_secret"],
+        "dropbox" => &["token", "client_secret"],
+        "b2" => &["key"],
         "local" => &[],
         // Types avancés : on filtre côté code via is_sensitive_key()
         _ => &[],
@@ -49,7 +52,7 @@ pub fn split_sensitive(
 
     let is_standard_type = matches!(
         remote_type,
-        "s3" | "sftp" | "ftp" | "smb" | "azureblob" | "sharepoint" | "local"
+        "s3" | "sftp" | "ftp" | "smb" | "azureblob" | "sharepoint" | "drive" | "dropbox" | "b2" | "local"
     );
 
     for (k, v) in config {
