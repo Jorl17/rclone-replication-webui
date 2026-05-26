@@ -56,8 +56,10 @@ base64 = "0.22"
 async-trait = "0.1"
 
 # AWS Secrets Manager
+# default-features = false sur aws-sdk-secretsmanager pour exclure le feature `rustls` (rustls 0.21 legacy),
+# en gardant rt-tokio + default-https-client (qui tire rustls-aws-lc / rustls 0.23).
 aws-config = { version = "1", features = ["behavior-version-latest"] }
-aws-sdk-secretsmanager = { version = "1" }
+aws-sdk-secretsmanager = { version = "1", default-features = false, features = ["rt-tokio", "default-https-client"] }
 
 # Google Cloud Secret Manager (auth via service account)
 gcp_auth = "0.12"
