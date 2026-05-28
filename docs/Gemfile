@@ -3,12 +3,16 @@ source "https://rubygems.org"
 gem "github-pages", group: :jekyll_plugins
 gem "jekyll-remote-theme"
 gem "jekyll-seo-tag"
+# Requis par le thème just-the-docs (chargé en remote_theme, donc son Gemfile
+# n'est pas appliqué — on doit déclarer ses plugins ici).
+gem "jekyll-include-cache", group: :jekyll_plugins
 
-# Ruby 3.4 a retiré ces gems de la stdlib par défaut, mais le vieux kramdown
-# (transitif via github-pages) en a besoin. À déclarer explicitement.
+# Ruby 3.4 a retiré ces gems de la stdlib par défaut, mais des deps (kramdown,
+# jekyll-data, …) en ont besoin. À déclarer explicitement pour la CI Ruby 3.3+.
 gem "rexml"
 gem "base64"
 gem "bigdecimal"
+gem "csv"
 
 # Windows / JRuby
 gem "tzinfo-data", platforms: [:mingw, :x64_mingw, :jruby]
