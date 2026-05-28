@@ -192,16 +192,22 @@ pub async fn lsjson(
     rclone_bin: &str,
     config_path: &Path,
     remote_path: &str,
+    extra_flags: &[String],
 ) -> Result<Vec<RcloneFile>> {
+    let mut args: Vec<String> = vec![
+        "--config".to_string(),
+        config_path
+            .to_str()
+            .context("chemin config non-UTF8")?
+            .to_string(),
+        "lsjson".to_string(),
+        "--recursive".to_string(),
+        "--files-only".to_string(),
+        remote_path.to_string(),
+    ];
+    args.extend_from_slice(extra_flags);
     let output = Command::new(rclone_bin)
-        .args([
-            "--config",
-            config_path.to_str().context("chemin config non-UTF8")?,
-            "lsjson",
-            "--recursive",
-            "--files-only",
-            remote_path,
-        ])
+        .args(&args)
         .output()
         .await
         .context("Failed to run rclone lsjson")?;
@@ -217,14 +223,24 @@ pub async fn lsjson(
 }
 
 /// Supprime un fichier distant unique via `rclone deletefile`.
-pub async fn deletefile(rclone_bin: &str, config_path: &Path, remote_path: &str) -> Result<()> {
+pub async fn deletefile(
+    rclone_bin: &str,
+    config_path: &Path,
+    remote_path: &str,
+    extra_flags: &[String],
+) -> Result<()> {
+    let mut args: Vec<String> = vec![
+        "--config".to_string(),
+        config_path
+            .to_str()
+            .context("chemin config non-UTF8")?
+            .to_string(),
+        "deletefile".to_string(),
+        remote_path.to_string(),
+    ];
+    args.extend_from_slice(extra_flags);
     let output = Command::new(rclone_bin)
-        .args([
-            "--config",
-            config_path.to_str().context("chemin config non-UTF8")?,
-            "deletefile",
-            remote_path,
-        ])
+        .args(&args)
         .output()
         .await
         .context("Failed to run rclone deletefile")?;

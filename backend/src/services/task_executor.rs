@@ -127,14 +127,14 @@ async fn execute_task_background(
     let remotes = match load_remotes(&state).await {
         Ok(r) => r,
         Err(e) => {
-            tracing::error!("Failed to load remotes for task {task_id}: {e}");
+            tracing::error!("Failed to load remotes for task {task_id}: {e:#}");
             finish_run(
                 &state,
                 task_id,
                 run_id,
                 started_at,
                 1,
-                format!("Error: {e}"),
+                format!("Error: {e:#}"),
                 None,
             )
             .await;
@@ -194,6 +194,7 @@ async fn execute_task_background(
                     &remotes,
                     &src,
                     &dst,
+                    &snapshot.rclone_flags,
                     &mut log_buffer,
                     &shared_logs,
                     &log_notify,
@@ -208,6 +209,7 @@ async fn execute_task_background(
                     &remotes,
                     &src,
                     &dst,
+                    &snapshot.rclone_flags,
                     &mut log_buffer,
                     &shared_logs,
                     &log_notify,
@@ -429,8 +431,8 @@ async fn run_plain(
         {
             Ok(p) => p,
             Err(e) => {
-                let msg = format!("Error: {e}");
-                tracing::error!("Failed to spawn rclone for task {task_id}: {e}");
+                let msg = format!("Error: {e:#}");
+                tracing::error!("Failed to spawn rclone for task {task_id}: {e:#}");
                 push_log(log_buffer, shared_logs, log_notify, &msg);
                 exit_code = 1;
                 continue; // retry
@@ -444,7 +446,7 @@ async fn run_plain(
         {
             Ok(s) => s.code().unwrap_or(-1),
             Err(e) => {
-                tracing::error!("rclone stream error for task {task_id}: {e}");
+                tracing::error!("rclone stream error for task {task_id}: {e:#}");
                 1
             }
         };
@@ -475,6 +477,7 @@ async fn run_encrypted_backup(
     remotes: &[RcloneRemote],
     src_base: &str,
     dst_base: &str,
+    rclone_flags: &[String],
     log_buffer: &mut String,
     shared_logs: &Arc<StdMutex<Vec<String>>>,
     log_notify: &Arc<Notify>,
@@ -487,7 +490,7 @@ async fn run_encrypted_backup(
                 log_buffer,
                 shared_logs,
                 log_notify,
-                &format!("Erreur : {e}"),
+                &format!("Erreur : {e:#}"),
             );
             return (1, None);
         }
@@ -506,11 +509,12 @@ async fn run_encrypted_backup(
     let config_path = match rclone::write_rclone_config(remotes) {
         Ok(p) => p,
         Err(e) => {
+            tracing::error!("rclone config write failed: {e:#}");
             push_log(
                 log_buffer,
                 shared_logs,
                 log_notify,
-                &format!("Erreur de configuration rclone : {e}"),
+                &format!("Erreur de configuration rclone : {e:#}"),
             );
             return (1, None);
         }
@@ -523,16 +527,23 @@ async fn run_encrypted_backup(
         log_buffer,
         shared_logs,
         log_notify,
+        &format!("Sauvegarde chiffrée : {src_base} → {dst_base}"),
+    );
+    push_log(
+        log_buffer,
+        shared_logs,
+        log_notify,
         "Listing de la source...",
     );
-    let source_files = match rclone::lsjson(&rclone_bin, &config_path, src_base).await {
+    let source_files = match rclone::lsjson(&rclone_bin, &config_path, src_base, rclone_flags).await
+    {
         Ok(f) => f,
         Err(e) => {
             push_log(
                 log_buffer,
                 shared_logs,
                 log_notify,
-                &format!("Erreur de listing de la source : {e}"),
+                &format!("Erreur de listing de la source : {e:#}"),
             );
             return (1, None);
         }
@@ -592,12 +603,19 @@ async fn run_encrypted_backup(
         let rclone_bin = rclone_bin.clone();
         let cfg = config_path.clone();
         let recipient = recipient.clone();
+        let flags = rclone_flags.to_vec();
         let src_file = join_remote_path(src_base, &file.path);
         let dst_file = join_remote_path(dst_base, &format!("{}.age", file.path));
         js.spawn_blocking(move || {
-            let res =
-                crypto_transfer::encrypt_file(&rclone_bin, &cfg, &src_file, &dst_file, &recipient)
-                    .map_err(|e| e.to_string());
+            let res = crypto_transfer::encrypt_file(
+                &rclone_bin,
+                &cfg,
+                &src_file,
+                &dst_file,
+                &recipient,
+                &flags,
+            )
+            .map_err(|e| e.to_string());
             (file, res)
         });
     };
@@ -635,7 +653,8 @@ async fn run_encrypted_backup(
                 );
                 // Nettoyage best-effort du `.age` partiel pour ne pas laisser un fichier corrompu.
                 let dst_file = join_remote_path(dst_base, &format!("{}.age", file.path));
-                let _ = rclone::deletefile(&rclone_bin, &config_path, &dst_file).await;
+                let _ =
+                    rclone::deletefile(&rclone_bin, &config_path, &dst_file, rclone_flags).await;
             }
             Err(join_err) => {
                 errors += 1;
@@ -656,7 +675,7 @@ async fn run_encrypted_backup(
     // 7. Suppressions (fichiers disparus de la source)
     for path in &to_delete {
         let dst_file = join_remote_path(dst_base, &format!("{path}.age"));
-        match rclone::deletefile(&rclone_bin, &config_path, &dst_file).await {
+        match rclone::deletefile(&rclone_bin, &config_path, &dst_file, rclone_flags).await {
             Ok(()) => {
                 deletes += 1;
                 push_log(
@@ -677,7 +696,7 @@ async fn run_encrypted_backup(
                     log_buffer,
                     shared_logs,
                     log_notify,
-                    &format!("ECHEC suppression {path} : {e}"),
+                    &format!("ECHEC suppression {path} : {e:#}"),
                 );
             }
         }
@@ -711,6 +730,7 @@ async fn run_encrypted_restore(
     remotes: &[RcloneRemote],
     enc_base: &str,
     target_base: &str,
+    rclone_flags: &[String],
     log_buffer: &mut String,
     shared_logs: &Arc<StdMutex<Vec<String>>>,
     log_notify: &Arc<Notify>,
@@ -723,7 +743,7 @@ async fn run_encrypted_restore(
                 log_buffer,
                 shared_logs,
                 log_notify,
-                &format!("Erreur : {e}"),
+                &format!("Erreur : {e:#}"),
             );
             return (1, None);
         }
@@ -741,11 +761,12 @@ async fn run_encrypted_restore(
     let config_path = match rclone::write_rclone_config(remotes) {
         Ok(p) => p,
         Err(e) => {
+            tracing::error!("rclone config write failed: {e:#}");
             push_log(
                 log_buffer,
                 shared_logs,
                 log_notify,
-                &format!("Erreur de configuration rclone : {e}"),
+                &format!("Erreur de configuration rclone : {e:#}"),
             );
             return (1, None);
         }
@@ -757,17 +778,23 @@ async fn run_encrypted_restore(
         log_buffer,
         shared_logs,
         log_notify,
+        &format!("Restauration chiffrée : {enc_base} → {target_base}"),
+    );
+    push_log(
+        log_buffer,
+        shared_logs,
+        log_notify,
         "Listing de la destination chiffrée...",
     );
     let enc_files: Vec<rclone::RcloneFile> =
-        match rclone::lsjson(&rclone_bin, &config_path, enc_base).await {
+        match rclone::lsjson(&rclone_bin, &config_path, enc_base, rclone_flags).await {
             Ok(f) => f.into_iter().filter(|f| f.path.ends_with(".age")).collect(),
             Err(e) => {
                 push_log(
                     log_buffer,
                     shared_logs,
                     log_notify,
-                    &format!("Erreur de listing : {e}"),
+                    &format!("Erreur de listing : {e:#}"),
                 );
                 return (1, None);
             }
@@ -795,6 +822,7 @@ async fn run_encrypted_restore(
         let rclone_bin = rclone_bin.clone();
         let cfg = config_path.clone();
         let identity = identity.clone();
+        let flags = rclone_flags.to_vec();
         let enc_file = join_remote_path(enc_base, &file.path);
         let plain_rel = file
             .path
@@ -803,9 +831,15 @@ async fn run_encrypted_restore(
             .to_string();
         let dst_file = join_remote_path(target_base, &plain_rel);
         js.spawn_blocking(move || {
-            let res =
-                crypto_transfer::decrypt_file(&rclone_bin, &cfg, &enc_file, &dst_file, &identity)
-                    .map_err(|e| e.to_string());
+            let res = crypto_transfer::decrypt_file(
+                &rclone_bin,
+                &cfg,
+                &enc_file,
+                &dst_file,
+                &identity,
+                &flags,
+            )
+            .map_err(|e| e.to_string());
             (file, res)
         });
     };
@@ -942,7 +976,7 @@ async fn finish_run(
         .await;
 
     if let Err(e) = update_result {
-        tracing::error!("Failed to update run {run_id}: {e}");
+        tracing::error!("Failed to update run {run_id}: {e:#}");
     }
 
     state.sse_broadcaster.publish(

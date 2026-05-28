@@ -38,6 +38,7 @@ fn run_pipe<F>(
     config_path: &Path,
     src_file: &str,
     dst_file: &str,
+    extra_flags: &[String],
     transform: F,
 ) -> Result<()>
 where
@@ -47,15 +48,29 @@ where
         .to_str()
         .ok_or_else(|| anyhow!("chemin config non-UTF8"))?;
 
+    let mut cat_args: Vec<String> = vec![
+        "--config".to_string(),
+        cfg.to_string(),
+        "cat".to_string(),
+        src_file.to_string(),
+    ];
+    cat_args.extend_from_slice(extra_flags);
     let mut cat = Command::new(rclone_bin)
-        .args(["--config", cfg, "cat", src_file])
+        .args(&cat_args)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
         .with_context(|| format!("lancement de rclone cat ({src_file})"))?;
 
+    let mut rcat_args: Vec<String> = vec![
+        "--config".to_string(),
+        cfg.to_string(),
+        "rcat".to_string(),
+        dst_file.to_string(),
+    ];
+    rcat_args.extend_from_slice(extra_flags);
     let mut rcat = Command::new(rclone_bin)
-        .args(["--config", cfg, "rcat", dst_file])
+        .args(&rcat_args)
         .stdin(Stdio::piped())
         .stdout(Stdio::null())
         .stderr(Stdio::piped())
@@ -90,18 +105,22 @@ where
 }
 
 /// Chiffre un fichier : `rclone cat src` → age(recipient) → `rclone rcat dst`.
+///
+/// `extra_flags` est propagé aux deux invocations rclone (mêmes flags que la tâche `rclone_flags`).
 pub fn encrypt_file(
     rclone_bin: &str,
     config_path: &Path,
     src_remote_file: &str,
     dst_remote_file: &str,
     recipient: &Recipient,
+    extra_flags: &[String],
 ) -> Result<()> {
     run_pipe(
         rclone_bin,
         config_path,
         src_remote_file,
         dst_remote_file,
+        extra_flags,
         |reader, writer| crypto::encrypt(recipient, reader, writer),
     )
 }
@@ -113,12 +132,14 @@ pub fn decrypt_file(
     enc_remote_file: &str,
     dst_remote_file: &str,
     identity: &Identity,
+    extra_flags: &[String],
 ) -> Result<()> {
     run_pipe(
         rclone_bin,
         config_path,
         enc_remote_file,
         dst_remote_file,
+        extra_flags,
         |reader, writer| crypto::decrypt(identity, reader, writer),
     )
 }

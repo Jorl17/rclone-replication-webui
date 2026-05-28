@@ -276,6 +276,16 @@ pub async fn restore(
     Path(id): Path<Uuid>,
     Json(req): Json<RestoreRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
+    tracing::info!(
+        "restore request for task {id}: target_remote_id={:?} target_path={:?} has_private_key={}",
+        req.target_remote_id,
+        req.target_path,
+        req.private_key
+            .as_deref()
+            .map(|s| !s.trim().is_empty())
+            .unwrap_or(false)
+    );
+
     let t = task::Entity::find_by_id(id)
         .one(&state.db)
         .await?
