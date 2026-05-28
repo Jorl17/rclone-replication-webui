@@ -5,7 +5,7 @@ use crate::{
 };
 use axum::{
     extract::{Query, State},
-    http::{header, HeaderMap, StatusCode},
+    http::{HeaderMap, StatusCode, header},
     response::{Html, IntoResponse, Redirect, Response},
 };
 use serde::Deserialize;
@@ -41,8 +41,9 @@ pub async fn start(
     headers: HeaderMap,
     Query(params): Query<StartParams>,
 ) -> AppResult<Response> {
-    let provider = provider_for(&params.provider)
-        .ok_or_else(|| AppError::BadRequest(format!("Unknown OAuth provider: {}", params.provider)))?;
+    let provider = provider_for(&params.provider).ok_or_else(|| {
+        AppError::BadRequest(format!("Unknown OAuth provider: {}", params.provider))
+    })?;
 
     let origin = detect_origin(&headers);
     let redirect_uri = format!("{origin}/api/oauth/callback");
@@ -169,10 +170,16 @@ fn render_result_page(message: &str, token_json: Option<&str>) -> Response {
 </html>"#
     );
 
-    (StatusCode::OK, [(header::CONTENT_TYPE, "text/html; charset=utf-8")], Html(html))
+    (
+        StatusCode::OK,
+        [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
+        Html(html),
+    )
         .into_response()
 }
 
 fn html_escape(s: &str) -> String {
-    s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;")
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
 }

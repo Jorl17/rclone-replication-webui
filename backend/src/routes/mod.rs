@@ -8,8 +8,8 @@ pub mod tasks;
 
 use crate::state::AppState;
 use axum::{
-    routing::{get, post},
     Router,
+    routing::{get, post},
 };
 
 pub fn build_router(state: AppState) -> Router {
@@ -27,9 +27,7 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/tasks", get(tasks::list).post(tasks::create))
         .route(
             "/api/tasks/{id}",
-            get(tasks::get)
-                .patch(tasks::patch)
-                .delete(tasks::delete),
+            get(tasks::get).patch(tasks::patch).delete(tasks::delete),
         )
         .route("/api/tasks/{id}/trigger", post(tasks::trigger))
         .route("/api/tasks/{id}/restore", post(tasks::restore))

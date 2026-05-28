@@ -1,5 +1,5 @@
-use super::{expiry_iso, OAuthProvider, RcloneToken};
-use anyhow::{anyhow, Context, Result};
+use super::{OAuthProvider, RcloneToken, expiry_iso};
+use anyhow::{Context, Result, anyhow};
 use async_trait::async_trait;
 use serde::Deserialize;
 

@@ -1,7 +1,7 @@
-pub mod state;
 mod dropbox;
 mod google;
 mod onedrive;
+pub mod state;
 
 use anyhow::Result;
 use async_trait::async_trait;

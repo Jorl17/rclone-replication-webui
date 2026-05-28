@@ -1,3 +1,4 @@
+pub mod encrypted_file_state;
 pub mod notification_channel;
 pub mod remote;
 pub mod task;

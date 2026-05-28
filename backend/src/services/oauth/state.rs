@@ -43,14 +43,16 @@ impl OAuthStateStore {
 
     /// Récupère et supprime un état OAuth (use-once).
     pub fn take(&self, key: &str) -> Option<PendingOAuthState> {
-        self.inner.remove(key).map(|(_, v)| v).filter(|s| {
-            s.created_at.elapsed() < STATE_TTL
-        })
+        self.inner
+            .remove(key)
+            .map(|(_, v)| v)
+            .filter(|s| s.created_at.elapsed() < STATE_TTL)
     }
 
     /// Supprime les états expirés.
     fn cleanup(&self) {
         let now = Instant::now();
-        self.inner.retain(|_, v| now.duration_since(v.created_at) < STATE_TTL);
+        self.inner
+            .retain(|_, v| now.duration_since(v.created_at) < STATE_TTL);
     }
 }

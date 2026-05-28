@@ -1,10 +1,23 @@
 use crate::models::remote::RcloneRemote;
 use anyhow::{Context, Result};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tokio::{
     io::{AsyncBufReadExt, BufReader},
     process::Command,
 };
+
+/// Entrée renvoyée par `rclone lsjson` (sous-ensemble des champs utiles).
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct RcloneFile {
+    #[serde(rename = "Path")]
+    pub path: String,
+    #[serde(rename = "Size")]
+    pub size: i64,
+    #[serde(rename = "ModTime")]
+    pub mod_time: String,
+    #[serde(rename = "IsDir", default)]
+    pub is_dir: bool,
+}
 
 /// Génère un fichier de config rclone temporaire à partir des remotes en BDD.
 pub fn write_rclone_config(remotes: &[RcloneRemote]) -> Result<PathBuf> {
@@ -49,7 +62,11 @@ pub fn write_rclone_config(remotes: &[RcloneRemote]) -> Result<PathBuf> {
 }
 
 /// Teste la connectivité d'un remote en exécutant `rclone lsd`.
-pub async fn test_remote(rclone_bin: &str, remotes: &[RcloneRemote], remote_name: &str) -> Result<String> {
+pub async fn test_remote(
+    rclone_bin: &str,
+    remotes: &[RcloneRemote],
+    remote_name: &str,
+) -> Result<String> {
     let config_path = write_rclone_config(remotes)?;
     let _cleanup = ConfigCleanup(config_path.clone());
 
@@ -118,7 +135,10 @@ pub async fn spawn_sync(
 }
 
 /// Lit les lignes du stdout et stderr d'un processus rclone, appelle le callback pour chaque ligne.
-pub async fn stream_output<F>(mut process: RcloneProcess, mut on_line: F) -> Result<std::process::ExitStatus>
+pub async fn stream_output<F>(
+    mut process: RcloneProcess,
+    mut on_line: F,
+) -> Result<std::process::ExitStatus>
 where
     F: FnMut(String) + Send,
 {
@@ -152,12 +172,68 @@ where
         on_line(line);
     }
 
-    let status = process.child.wait().await.context("Failed to wait for rclone")?;
+    let status = process
+        .child
+        .wait()
+        .await
+        .context("Failed to wait for rclone")?;
 
     // Nettoyer le fichier de config temporaire
     let _ = std::fs::remove_file(&process.config_path);
 
     Ok(status)
+}
+
+/// Liste récursivement les fichiers (hors dossiers) d'un chemin distant via `rclone lsjson`.
+///
+/// Utilisé par le pipeline de chiffrement pour comparer la source au manifeste (sauvegarde)
+/// ou pour énumérer les fichiers `.age` à restaurer (restauration).
+pub async fn lsjson(
+    rclone_bin: &str,
+    config_path: &Path,
+    remote_path: &str,
+) -> Result<Vec<RcloneFile>> {
+    let output = Command::new(rclone_bin)
+        .args([
+            "--config",
+            config_path.to_str().context("chemin config non-UTF8")?,
+            "lsjson",
+            "--recursive",
+            "--files-only",
+            remote_path,
+        ])
+        .output()
+        .await
+        .context("Failed to run rclone lsjson")?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("rclone lsjson a échoué : {}", stderr.trim());
+    }
+
+    let files: Vec<RcloneFile> =
+        serde_json::from_slice(&output.stdout).context("parsing de la sortie JSON lsjson")?;
+    Ok(files.into_iter().filter(|f| !f.is_dir).collect())
+}
+
+/// Supprime un fichier distant unique via `rclone deletefile`.
+pub async fn deletefile(rclone_bin: &str, config_path: &Path, remote_path: &str) -> Result<()> {
+    let output = Command::new(rclone_bin)
+        .args([
+            "--config",
+            config_path.to_str().context("chemin config non-UTF8")?,
+            "deletefile",
+            remote_path,
+        ])
+        .output()
+        .await
+        .context("Failed to run rclone deletefile")?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("rclone deletefile a échoué : {}", stderr.trim());
+    }
+    Ok(())
 }
 
 // Guard RAII pour nettoyer le fichier config en cas d'erreur précoce

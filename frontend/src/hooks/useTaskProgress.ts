@@ -28,6 +28,8 @@ export function useTaskProgress(taskId: string | null, running: boolean, forceCo
   useEffect(() => {
     if (!taskId || !shouldConnect) return;
 
+    // Réinitialisation volontaire de l'état à chaque (re)connexion / changement de tâche.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setProgress({ lines: [], done: false, status: null });
     const es = new EventSource(`/api/tasks/${taskId}/progress`);
     esRef.current = es;

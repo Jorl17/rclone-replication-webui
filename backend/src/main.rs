@@ -27,8 +27,11 @@ async fn main() -> anyhow::Result<()> {
 
     tracing_subscriber::fmt()
         .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "rclone_replication_ui=debug,sea_orm=warn,sqlx=warn,info".parse().unwrap()),
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+                "rclone_replication_ui=debug,sea_orm=warn,sqlx=warn,info"
+                    .parse()
+                    .unwrap()
+            }),
         )
         .init();
 
@@ -69,8 +72,8 @@ async fn main() -> anyhow::Result<()> {
 /// Healthcheck léger : connecte à la BDD, exécute SELECT 1, et quitte.
 async fn healthcheck() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
-    let url = std::env::var("DATABASE_URL")
-        .map_err(|_| anyhow::anyhow!("DATABASE_URL is required"))?;
+    let url =
+        std::env::var("DATABASE_URL").map_err(|_| anyhow::anyhow!("DATABASE_URL is required"))?;
 
     let db = Database::connect(&url).await?;
     db.execute(Statement::from_string(

@@ -68,7 +68,7 @@ Les retries sont logués dans la sortie SSE en direct (`--- Tentative 2/4 dans 1
 Depuis la page de la tâche, deux boutons :
 
 - **Lancer** : exécution normale (source → destination)
-- **Restaurer** : sens inverse (destination → source) — une confirmation est demandée pour éviter les fausses manipulations
+- **Restaurer** : lit la destination et écrit vers une cible choisie (par défaut la source d'origine). Une fenêtre permet de choisir la cible et, si la destination est [chiffrée](encryption), de saisir la clé privée. Voir [Chiffrement](encryption).
 
 Si la tâche est déjà en cours, les boutons sont désactivés. Si le cron tente de déclencher une tâche déjà en cours, l'exécution est enregistrée comme **ignorée** (`skipped`) et notifie si l'option « Notifier en cas d'exécution ignorée » est activée.
 

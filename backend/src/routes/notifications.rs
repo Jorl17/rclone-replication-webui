@@ -6,22 +6,20 @@ use crate::{
     state::AppState,
 };
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
-    Json,
 };
 use sea_orm::*;
 use serde_json::json;
 use uuid::Uuid;
 
-pub async fn list(
-    State(state): State<AppState>,
-) -> AppResult<Json<Vec<ChannelWithTaskCount>>> {
+pub async fn list(State(state): State<AppState>) -> AppResult<Json<Vec<ChannelWithTaskCount>>> {
     let channels = notification_channel::Entity::find()
         .order_by_asc(notification_channel::Column::Name)
         .all(&state.db)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
     let mut result = Vec::with_capacity(channels.len());
     for ch in channels {
@@ -29,7 +27,7 @@ pub async fn list(
             .filter(task::Column::NotificationChannelId.eq(ch.id))
             .count(&state.db)
             .await
-            .map_err(|e| AppError::Database(e.into()))? as i64;
+            .map_err(AppError::Database)? as i64;
 
         result.push(ChannelWithTaskCount {
             id: ch.id,
@@ -49,7 +47,9 @@ pub async fn create(
     Json(req): Json<CreateChannelRequest>,
 ) -> AppResult<(StatusCode, Json<notification_channel::Model>)> {
     if req.name.is_empty() || req.apprise_url.is_empty() {
-        return Err(AppError::BadRequest("name and apprise_url are required".into()));
+        return Err(AppError::BadRequest(
+            "name and apprise_url are required".into(),
+        ));
     }
     let model = notification_channel::ActiveModel {
         id: Set(Uuid::new_v4()),
@@ -59,7 +59,7 @@ pub async fn create(
         created_at: Set(chrono::Utc::now().into()),
         updated_at: Set(chrono::Utc::now().into()),
     };
-    let result = model.insert(&state.db).await.map_err(|e| AppError::Database(e.into()))?;
+    let result = model.insert(&state.db).await.map_err(AppError::Database)?;
     Ok((StatusCode::CREATED, Json(result)))
 }
 
@@ -70,7 +70,7 @@ pub async fn get(
     let channel = notification_channel::Entity::find_by_id(id)
         .one(&state.db)
         .await
-        .map_err(|e| AppError::Database(e.into()))?
+        .map_err(AppError::Database)?
         .ok_or_else(|| AppError::NotFound(format!("Channel {id} not found")))?;
     Ok(Json(channel))
 }
@@ -83,7 +83,7 @@ pub async fn update(
     let existing = notification_channel::Entity::find_by_id(id)
         .one(&state.db)
         .await
-        .map_err(|e| AppError::Database(e.into()))?
+        .map_err(AppError::Database)?
         .ok_or_else(|| AppError::NotFound(format!("Channel {id} not found")))?;
 
     let mut model: notification_channel::ActiveModel = existing.into();
@@ -92,19 +92,16 @@ pub async fn update(
     model.enabled = Set(req.enabled);
     model.updated_at = Set(chrono::Utc::now().into());
 
-    let result = model.update(&state.db).await.map_err(|e| AppError::Database(e.into()))?;
+    let result = model.update(&state.db).await.map_err(AppError::Database)?;
     Ok(Json(result))
 }
 
-pub async fn delete(
-    State(state): State<AppState>,
-    Path(id): Path<Uuid>,
-) -> AppResult<StatusCode> {
+pub async fn delete(State(state): State<AppState>, Path(id): Path<Uuid>) -> AppResult<StatusCode> {
     let count = task::Entity::find()
         .filter(task::Column::NotificationChannelId.eq(id))
         .count(&state.db)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
     if count > 0 {
         return Err(AppError::Conflict(
@@ -115,7 +112,7 @@ pub async fn delete(
     let result = notification_channel::Entity::delete_by_id(id)
         .exec(&state.db)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
     if result.rows_affected == 0 {
         return Err(AppError::NotFound(format!("Channel {id} not found")));
@@ -130,7 +127,7 @@ pub async fn test_notification(
     let channel = notification_channel::Entity::find_by_id(id)
         .one(&state.db)
         .await
-        .map_err(|e| AppError::Database(e.into()))?
+        .map_err(AppError::Database)?
         .ok_or_else(|| AppError::NotFound(format!("Channel {id} not found")))?;
 
     match apprise::send_notification(

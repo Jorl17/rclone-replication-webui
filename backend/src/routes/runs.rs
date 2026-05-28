@@ -5,8 +5,8 @@ use crate::{
     state::AppState,
 };
 use axum::{
-    extract::{Path, State},
     Json,
+    extract::{Path, State},
 };
 use sea_orm::*;
 use uuid::Uuid;
@@ -16,7 +16,11 @@ pub async fn list_for_task(
     Path(task_id): Path<Uuid>,
 ) -> AppResult<Json<Vec<TaskRunSummary>>> {
     // Verify task exists
-    if task::Entity::find_by_id(task_id).one(&state.db).await?.is_none() {
+    if task::Entity::find_by_id(task_id)
+        .one(&state.db)
+        .await?
+        .is_none()
+    {
         return Err(AppError::NotFound(format!("Task {task_id} not found")));
     }
 

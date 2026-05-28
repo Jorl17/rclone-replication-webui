@@ -1,5 +1,5 @@
 use super::SecretStore;
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use async_trait::async_trait;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -29,7 +29,12 @@ pub struct AzureKeyVaultSecretStore {
 }
 
 impl AzureKeyVaultSecretStore {
-    pub fn new(tenant_id: String, client_id: String, client_secret: String, vault_url: String) -> Self {
+    pub fn new(
+        tenant_id: String,
+        client_id: String,
+        client_secret: String,
+        vault_url: String,
+    ) -> Self {
         let client = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(15))
             .build()
@@ -53,14 +58,17 @@ impl AzureKeyVaultSecretStore {
     async fn access_token(&self) -> anyhow::Result<String> {
         {
             let cache = self.token_cache.read().await;
-            if let Some(t) = cache.as_ref() {
-                if t.expires_at > std::time::Instant::now() {
-                    return Ok(t.token.clone());
-                }
+            if let Some(t) = cache.as_ref()
+                && t.expires_at > std::time::Instant::now()
+            {
+                return Ok(t.token.clone());
             }
         }
 
-        let url = format!("https://login.microsoftonline.com/{}/oauth2/v2.0/token", self.tenant_id);
+        let url = format!(
+            "https://login.microsoftonline.com/{}/oauth2/v2.0/token",
+            self.tenant_id
+        );
         let resp = self
             .client
             .post(&url)

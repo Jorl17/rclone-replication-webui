@@ -1,7 +1,7 @@
 use super::SecretStore;
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use async_trait::async_trait;
-use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
+use base64::{Engine, engine::general_purpose::STANDARD as BASE64};
 use gcp_auth::TokenProvider;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -88,7 +88,9 @@ impl SecretStore for GoogleCloudSecretStore {
             data: String,
         }
         let parsed: AccessResponse = resp.json().await.context("GCP access parse")?;
-        let bytes = BASE64.decode(parsed.payload.data).context("base64 decode")?;
+        let bytes = BASE64
+            .decode(parsed.payload.data)
+            .context("base64 decode")?;
         let map: HashMap<String, String> =
             serde_json::from_slice(&bytes).context("parse GCP secret JSON")?;
         Ok(Some(map))

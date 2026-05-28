@@ -1,17 +1,17 @@
-pub mod migration;
-pub mod sensitive;
-mod store;
-mod noop;
-mod scaleway;
-mod azure;
 mod aws;
-mod vault;
-mod infisical;
+mod azure;
 mod doppler;
 mod gcp;
+mod infisical;
+pub mod migration;
+mod noop;
+mod scaleway;
+pub mod sensitive;
+mod store;
+mod vault;
 
-pub use store::SecretStore;
 pub use noop::NoopSecretStore;
+pub use store::SecretStore;
 
 use crate::config::SecretManagerConfig;
 use std::sync::Arc;
@@ -24,8 +24,17 @@ pub async fn build(cfg: Option<&SecretManagerConfig>) -> Arc<dyn SecretStore> {
     };
 
     match cfg {
-        SecretManagerConfig::Scaleway { secret_key, project_id, region, path } => {
-            tracing::info!("Secret Manager : Scaleway (région {}, projet {})", region, project_id);
+        SecretManagerConfig::Scaleway {
+            secret_key,
+            project_id,
+            region,
+            path,
+        } => {
+            tracing::info!(
+                "Secret Manager : Scaleway (région {}, projet {})",
+                region,
+                project_id
+            );
             Arc::new(scaleway::ScalewaySecretStore::new(
                 secret_key.clone(),
                 project_id.clone(),
@@ -33,7 +42,12 @@ pub async fn build(cfg: Option<&SecretManagerConfig>) -> Arc<dyn SecretStore> {
                 path.clone(),
             ))
         }
-        SecretManagerConfig::AzureKeyVault { tenant_id, client_id, client_secret, vault_url } => {
+        SecretManagerConfig::AzureKeyVault {
+            tenant_id,
+            client_id,
+            client_secret,
+            vault_url,
+        } => {
             tracing::info!("Secret Manager : Azure Key Vault ({})", vault_url);
             Arc::new(azure::AzureKeyVaultSecretStore::new(
                 tenant_id.clone(),
@@ -47,12 +61,19 @@ pub async fn build(cfg: Option<&SecretManagerConfig>) -> Arc<dyn SecretStore> {
             match aws::AwsSecretStore::new(region.clone(), prefix.clone()).await {
                 Ok(s) => Arc::new(s),
                 Err(e) => {
-                    tracing::error!("Échec de l'initialisation AWS Secrets Manager : {e}. Fallback vers BDD.");
+                    tracing::error!(
+                        "Échec de l'initialisation AWS Secrets Manager : {e}. Fallback vers BDD."
+                    );
                     Arc::new(NoopSecretStore)
                 }
             }
         }
-        SecretManagerConfig::Vault { addr, token, mount_path, path_prefix } => {
+        SecretManagerConfig::Vault {
+            addr,
+            token,
+            mount_path,
+            path_prefix,
+        } => {
             tracing::info!("Secret Manager : HashiCorp Vault ({})", addr);
             Arc::new(vault::VaultSecretStore::new(
                 addr.clone(),
@@ -61,7 +82,14 @@ pub async fn build(cfg: Option<&SecretManagerConfig>) -> Arc<dyn SecretStore> {
                 path_prefix.clone(),
             ))
         }
-        SecretManagerConfig::Infisical { host, client_id, client_secret, project_id, environment, secret_path } => {
+        SecretManagerConfig::Infisical {
+            host,
+            client_id,
+            client_secret,
+            project_id,
+            environment,
+            secret_path,
+        } => {
             tracing::info!("Secret Manager : Infisical ({})", host);
             Arc::new(infisical::InfisicalSecretStore::new(
                 host.clone(),
@@ -73,17 +101,30 @@ pub async fn build(cfg: Option<&SecretManagerConfig>) -> Arc<dyn SecretStore> {
             ))
         }
         SecretManagerConfig::GoogleCloud { project_id } => {
-            tracing::info!("Secret Manager : Google Cloud Secret Manager (projet {})", project_id);
+            tracing::info!(
+                "Secret Manager : Google Cloud Secret Manager (projet {})",
+                project_id
+            );
             match gcp::GoogleCloudSecretStore::new(project_id.clone()).await {
                 Ok(s) => Arc::new(s),
                 Err(e) => {
-                    tracing::error!("Échec de l'initialisation GCP Secret Manager : {e}. Fallback vers BDD.");
+                    tracing::error!(
+                        "Échec de l'initialisation GCP Secret Manager : {e}. Fallback vers BDD."
+                    );
                     Arc::new(NoopSecretStore)
                 }
             }
         }
-        SecretManagerConfig::Doppler { token, project, config } => {
-            tracing::info!("Secret Manager : Doppler (projet {}, config {})", project, config);
+        SecretManagerConfig::Doppler {
+            token,
+            project,
+            config,
+        } => {
+            tracing::info!(
+                "Secret Manager : Doppler (projet {}, config {})",
+                project,
+                config
+            );
             Arc::new(doppler::DopplerSecretStore::new(
                 token.clone(),
                 project.clone(),

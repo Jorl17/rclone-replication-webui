@@ -19,7 +19,8 @@ Interface web de gestion de réplication de fichiers basée sur [rclone](https:/
 ## Fonctionnalités
 
 - **Stockages distants** — Gestion des remotes rclone avec formulaires guidés pour les types courants (S3, SFTP, FTP, SMB, Azure Blob Storage, SharePoint, local) et éditeur clé/valeur pour les types avancés
-- **Tâches de réplication** — Planification cron (5 ou 6 champs, macros comme `@daily`), parseur cron en direct avec aperçu des prochaines exécutions, déclenchement manuel, mode restauration (sync inverse)
+- **Tâches de réplication** — Planification cron (5 ou 6 champs, macros comme `@daily`), parseur cron en direct avec aperçu des prochaines exécutions, déclenchement manuel, mode restauration (déchiffrement + écriture vers une cible choisie)
+- **Chiffrement de bout en bout** — Chiffrement asymétrique optionnel de la destination ([age](https://age-encryption.org) / X25519). Le serveur ne détient que la clé publique (il chiffre, même en cron) ; la clé privée n'est jamais stockée et n'est saisie qu'à la restauration. Génération de clés côté navigateur, sauvegardes chiffrées incrémentales
 - **Retry automatique** — Relance automatique en cas d'échec avec backoff linéaire configurable
 - **Suivi en temps réel** — Progression SSE et logs en direct pendant l'exécution, SSE global pour la mise à jour cross-tab des états
 - **Historique** — 100 dernières exécutions par tâche avec statistiques rclone (transferts, volume, vérifications, suppressions, erreurs), logs dépliables inline

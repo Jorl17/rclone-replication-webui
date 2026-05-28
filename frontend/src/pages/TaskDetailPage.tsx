@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Play, RotateCcw, Pencil, ChevronDown, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Play, RotateCcw, Pencil, ChevronDown, ChevronRight, ArrowLeft, Lock } from 'lucide-react';
 import { useTask, useTriggerTask, useRestoreTask } from '../hooks/useTasks';
+import { useRemotes } from '../hooks/useRemotes';
 import { useTaskRuns, useRun } from '../hooks/useTaskRuns';
 import { useTaskProgress } from '../hooks/useTaskProgress';
 import { LiveProgressPanel } from '../components/progress/LiveProgressPanel';
 import { StatusBadge } from '../components/ui/StatusBadge';
-import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { RestoreModal } from '../components/tasks/RestoreModal';
 import { Tooltip } from '../components/ui/Tooltip';
 import type { RcloneStats } from '../types/taskRun';
 import cronstrue from 'cronstrue';
@@ -66,6 +67,7 @@ export function TaskDetailPage() {
   const navigate = useNavigate();
   const { data: task, isLoading } = useTask(id || '');
   const { data: runs } = useTaskRuns(id || '');
+  const { data: remotes } = useRemotes();
   const triggerTask = useTriggerTask();
   const restoreTask = useRestoreTask();
   const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
@@ -98,6 +100,13 @@ export function TaskDetailPage() {
           <div className="mt-1.5 flex items-center gap-3">
             <StatusBadge status={task.running ? 'running' : !task.enabled ? 'disabled' : task.last_run?.status ?? 'unknown'} />
             <span className="text-sm text-surface-500">{cronLabel}</span>
+            {task.encryption_enabled && (
+              <Tooltip content="Destination chiffrée (age / X25519)">
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-brand-700 bg-brand-50 border border-brand-200 rounded-full px-2 py-0.5 cursor-help">
+                  <Lock size={11} /> Chiffré
+                </span>
+              </Tooltip>
+            )}
           </div>
         </div>
         <div className="flex gap-2">
@@ -223,15 +232,15 @@ export function TaskDetailPage() {
         </div>
       </div>
 
-      <ConfirmDialog
-        open={showRestoreConfirm}
-        title="Lancer une restauration ?"
-        message="La restauration synchronise en sens inverse : les fichiers de la destination écraseront ceux de la source. Cette opération peut entraîner une perte de données."
-        confirmLabel="Restaurer"
-        variant="warning"
-        onConfirm={() => { restoreTask.mutate(task.id); setShowRestoreConfirm(false); setForceConnect(true); }}
-        onCancel={() => setShowRestoreConfirm(false)}
-      />
+      {showRestoreConfirm && (
+        <RestoreModal
+          open
+          task={task}
+          remotes={remotes || []}
+          onConfirm={(payload) => { restoreTask.mutate({ id: task.id, payload }); setShowRestoreConfirm(false); setForceConnect(true); }}
+          onCancel={() => setShowRestoreConfirm(false)}
+        />
+      )}
     </div>
   );
 }

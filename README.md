@@ -19,7 +19,8 @@ Web interface for managing file replication powered by [rclone](https://rclone.o
 ## Features
 
 - **Remote storage** — Manage rclone remotes with guided forms for the most common types (S3, SFTP, FTP, SMB, Azure Blob Storage, SharePoint, local), and key/value editor for advanced types
-- **Replication tasks** — Cron scheduling (5 or 6 fields, macros like `@daily`), live cron parser with next-run preview, manual trigger, restore mode (reverse sync)
+- **Replication tasks** — Cron scheduling (5 or 6 fields, macros like `@daily`), live cron parser with next-run preview, manual trigger, restore mode (decrypt + write to a chosen target)
+- **End-to-end encryption** — Optional asymmetric encryption of the destination ([age](https://age-encryption.org) / X25519). The server only holds the public key (it encrypts, even on cron); the private key is never stored and is entered only at restore time. Browser-side key generation, incremental encrypted backups
 - **Auto-retry** — Automatic retry on failure with configurable linear backoff
 - **Real-time monitoring** — SSE progress and live logs during execution, global SSE for cross-tab state updates
 - **History** — Last 100 runs per task with rclone statistics (transfers, volume, checks, deletes, errors), expandable inline logs

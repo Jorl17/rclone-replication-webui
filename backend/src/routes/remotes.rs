@@ -6,9 +6,9 @@ use crate::{
     state::AppState,
 };
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
-    Json,
 };
 use sea_orm::*;
 use serde_json::json;
@@ -30,11 +30,10 @@ async fn mask_with_stored_keys(
         .get(id)
         .await
         .map_err(AppError::Internal)?
+        && let Some(obj) = config.as_object_mut()
     {
-        if let Some(obj) = config.as_object_mut() {
-            for k in stored.keys() {
-                obj.insert(k.clone(), json!(""));
-            }
+        for k in stored.keys() {
+            obj.insert(k.clone(), json!(""));
         }
     }
     Ok(())
@@ -45,7 +44,7 @@ pub async fn list(State(state): State<AppState>) -> AppResult<Json<Vec<RemoteWit
         .order_by_asc(remote::Column::Name)
         .all(&state.db)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
     let mut result = Vec::with_capacity(remotes.len());
     for r in remotes {
@@ -57,7 +56,7 @@ pub async fn list(State(state): State<AppState>) -> AppResult<Json<Vec<RemoteWit
             )
             .count(&state.db)
             .await
-            .map_err(|e| AppError::Database(e.into()))? as i64;
+            .map_err(AppError::Database)? as i64;
 
         let mut config = r.config.clone();
         mask_with_stored_keys(&state, r.id, &mut config).await?;
@@ -112,7 +111,7 @@ pub async fn create(
         created_at: Set(chrono::Utc::now().into()),
         updated_at: Set(chrono::Utc::now().into()),
     };
-    let result = model.insert(&state.db).await.map_err(|e| AppError::Database(e.into()))?;
+    let result = model.insert(&state.db).await.map_err(AppError::Database)?;
     Ok((StatusCode::CREATED, Json(result)))
 }
 
@@ -123,7 +122,7 @@ pub async fn get(
     let mut remote = remote::Entity::find_by_id(id)
         .one(&state.db)
         .await
-        .map_err(|e| AppError::Database(e.into()))?
+        .map_err(AppError::Database)?
         .ok_or_else(|| AppError::NotFound(format!("Remote {id} not found")))?;
 
     mask_with_stored_keys(&state, id, &mut remote.config).await?;
@@ -138,7 +137,7 @@ pub async fn update(
     let existing = remote::Entity::find_by_id(id)
         .one(&state.db)
         .await
-        .map_err(|e| AppError::Database(e.into()))?
+        .map_err(AppError::Database)?
         .ok_or_else(|| AppError::NotFound(format!("Remote {id} not found")))?;
 
     // Si le SecretStore est actif, fusionner les secrets : un champ vide signifie "ne pas modifier"
@@ -189,14 +188,11 @@ pub async fn update(
     model.config = Set(public_config);
     model.updated_at = Set(chrono::Utc::now().into());
 
-    let result = model.update(&state.db).await.map_err(|e| AppError::Database(e.into()))?;
+    let result = model.update(&state.db).await.map_err(AppError::Database)?;
     Ok(Json(result))
 }
 
-pub async fn delete(
-    State(state): State<AppState>,
-    Path(id): Path<Uuid>,
-) -> AppResult<StatusCode> {
+pub async fn delete(State(state): State<AppState>, Path(id): Path<Uuid>) -> AppResult<StatusCode> {
     let count = task::Entity::find()
         .filter(
             Condition::any()
@@ -205,7 +201,7 @@ pub async fn delete(
         )
         .count(&state.db)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
     if count > 0 {
         return Err(AppError::Conflict(
@@ -216,7 +212,7 @@ pub async fn delete(
     let result = remote::Entity::delete_by_id(id)
         .exec(&state.db)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
     if result.rows_affected == 0 {
         return Err(AppError::NotFound(format!("Remote {id} not found")));
@@ -237,30 +233,28 @@ pub async fn test_connectivity(
     let remote = remote::Entity::find_by_id(id)
         .one(&state.db)
         .await
-        .map_err(|e| AppError::Database(e.into()))?
+        .map_err(AppError::Database)?
         .ok_or_else(|| AppError::NotFound(format!("Remote {id} not found")))?;
 
     let all_remotes = remote::Entity::find()
         .all(&state.db)
         .await
-        .map_err(|e| AppError::Database(e.into()))?;
+        .map_err(AppError::Database)?;
 
     // Charger les secrets et fusionner avec les configs publiques
     let mut rclone_remotes = Vec::with_capacity(all_remotes.len());
     for r in all_remotes {
         let mut config = r.config.clone();
-        if state.secret_store.is_active() {
-            if let Some(stored) = state
+        if state.secret_store.is_active()
+            && let Some(stored) = state
                 .secret_store
                 .get(r.id)
                 .await
                 .map_err(AppError::Internal)?
-            {
-                if let Some(obj) = config.as_object_mut() {
-                    for (k, v) in stored {
-                        obj.insert(k, json!(v));
-                    }
-                }
+            && let Some(obj) = config.as_object_mut()
+        {
+            for (k, v) in stored {
+                obj.insert(k, json!(v));
             }
         }
         rclone_remotes.push(crate::models::remote::RcloneRemote {

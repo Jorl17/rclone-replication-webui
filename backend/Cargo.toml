@@ -67,3 +67,9 @@ aws-sdk-secretsmanager = { version = "1", default-features = false, features = [
 
 # Google Cloud Secret Manager (auth via service account)
 gcp_auth = "0.12"
+
+# Chiffrement asymétrique (X25519 hybride) des données avant envoi vers la destination.
+# La clé publique chiffre (sauvegarde automatisée), la clé privée déchiffre (restauration manuelle).
+age = "0.11"
+# Effacement mémoire des secrets (clé privée saisie à la restauration).
+zeroize = "1"

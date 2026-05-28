@@ -1,5 +1,5 @@
 use super::SecretStore;
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use async_trait::async_trait;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -54,16 +54,19 @@ impl InfisicalSecretStore {
 
     fn secret_name(remote_id: Uuid) -> String {
         // Infisical exige des noms en SCREAMING_SNAKE_CASE
-        format!("RCLONE_UI_{}", remote_id.to_string().replace('-', "_").to_uppercase())
+        format!(
+            "RCLONE_UI_{}",
+            remote_id.to_string().replace('-', "_").to_uppercase()
+        )
     }
 
     async fn access_token(&self) -> anyhow::Result<String> {
         {
             let cache = self.token_cache.read().await;
-            if let Some(t) = cache.as_ref() {
-                if t.expires_at > std::time::Instant::now() {
-                    return Ok(t.token.clone());
-                }
+            if let Some(t) = cache.as_ref()
+                && t.expires_at > std::time::Instant::now()
+            {
+                return Ok(t.token.clone());
             }
         }
 
@@ -112,7 +115,11 @@ impl SecretStore for InfisicalSecretStore {
 
     async fn get(&self, remote_id: Uuid) -> anyhow::Result<Option<HashMap<String, String>>> {
         let token = self.access_token().await?;
-        let url = format!("{}/api/v3/secrets/raw/{}", self.host, Self::secret_name(remote_id));
+        let url = format!(
+            "{}/api/v3/secrets/raw/{}",
+            self.host,
+            Self::secret_name(remote_id)
+        );
         let resp = self
             .client
             .get(&url)
@@ -145,8 +152,8 @@ impl SecretStore for InfisicalSecretStore {
             secret_value: String,
         }
         let parsed: GetResponse = resp.json().await.context("Infisical get parse")?;
-        let map: HashMap<String, String> =
-            serde_json::from_str(&parsed.secret.secret_value).context("parse Infisical secret JSON")?;
+        let map: HashMap<String, String> = serde_json::from_str(&parsed.secret.secret_value)
+            .context("parse Infisical secret JSON")?;
         Ok(Some(map))
     }
 
@@ -204,7 +211,11 @@ impl SecretStore for InfisicalSecretStore {
 
     async fn delete(&self, remote_id: Uuid) -> anyhow::Result<()> {
         let token = self.access_token().await?;
-        let url = format!("{}/api/v3/secrets/raw/{}", self.host, Self::secret_name(remote_id));
+        let url = format!(
+            "{}/api/v3/secrets/raw/{}",
+            self.host,
+            Self::secret_name(remote_id)
+        );
         let resp = self
             .client
             .delete(&url)

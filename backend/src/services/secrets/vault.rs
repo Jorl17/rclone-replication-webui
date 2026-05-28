@@ -1,5 +1,5 @@
 use super::SecretStore;
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use async_trait::async_trait;
 use serde::Deserialize;
 use std::collections::HashMap;

@@ -11,11 +11,13 @@ impl MigrationTrait for Migration {
         // Ajouter 'skipped' au CHECK constraint du statut
         db.execute_unprepared(
             "ALTER TABLE task_runs DROP CONSTRAINT IF EXISTS task_runs_status_check",
-        ).await?;
+        )
+        .await?;
         db.execute_unprepared(
             "ALTER TABLE task_runs ADD CONSTRAINT task_runs_status_check
              CHECK (status IN ('running', 'success', 'failure', 'skipped'))",
-        ).await?;
+        )
+        .await?;
 
         Ok(())
     }
@@ -24,11 +26,13 @@ impl MigrationTrait for Migration {
         let db = manager.get_connection();
         db.execute_unprepared(
             "ALTER TABLE task_runs DROP CONSTRAINT IF EXISTS task_runs_status_check",
-        ).await?;
+        )
+        .await?;
         db.execute_unprepared(
             "ALTER TABLE task_runs ADD CONSTRAINT task_runs_status_check
              CHECK (status IN ('running', 'success', 'failure'))",
-        ).await?;
+        )
+        .await?;
         Ok(())
     }
 }

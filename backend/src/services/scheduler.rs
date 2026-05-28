@@ -76,7 +76,8 @@ pub async fn rebuild_scheduler(state: AppState) {
 
                 tracing::info!("scheduler: triggering task {task_id}");
                 if let Err(e) =
-                    task_executor::spawn_task(s, task_id, task_executor::ExecutionMode::Scheduled).await
+                    task_executor::spawn_task(s, task_id, task_executor::ExecutionMode::Scheduled)
+                        .await
                 {
                     tracing::warn!("scheduler: failed to trigger task {task_id}: {e}");
                 }
@@ -130,7 +131,9 @@ async fn log_skipped_run(
         finished_at: Set(Some(now.into())),
         duration_ms: Set(Some(0)),
         exit_code: Set(None),
-        log_output: Set(Some("Exécution ignorée : la tâche précédente est encore en cours.".to_string())),
+        log_output: Set(Some(
+            "Exécution ignorée : la tâche précédente est encore en cours.".to_string(),
+        )),
         stats: Set(None),
     };
 
@@ -139,32 +142,32 @@ async fn log_skipped_run(
     }
 
     // Notifier si "skipped" est dans notify_on
-    if let Some(channel_id) = notification_channel_id {
-        if notify_on.iter().any(|n| n == "skipped") {
-            let channel = match notification_channel::Entity::find_by_id(channel_id)
-                .filter(notification_channel::Column::Enabled.eq(true))
-                .one(&state.db)
-                .await
-            {
-                Ok(Some(ch)) => ch,
-                _ => return,
-            };
+    if let Some(channel_id) = notification_channel_id
+        && notify_on.iter().any(|n| n == "skipped")
+    {
+        let channel = match notification_channel::Entity::find_by_id(channel_id)
+            .filter(notification_channel::Column::Enabled.eq(true))
+            .one(&state.db)
+            .await
+        {
+            Ok(Some(ch)) => ch,
+            _ => return,
+        };
 
-            let body = format!(
-                "**Tâche** : `{task_id}`\n\
+        let body = format!(
+            "**Tâche** : `{task_id}`\n\
                  **Raison** : L'exécution précédente est encore en cours\n\
                  \n\
                  La planification cron a tenté de lancer cette tâche, \
                  mais la synchronisation précédente n'est pas terminée. \
                  L'exécution a été _ignorée_."
-            );
-            let _ = crate::services::apprise::send_notification(
-                &state.config.apprise_bin,
-                &[channel.apprise_url],
-                "Tâche de réplication ignorée",
-                &body,
-            )
-            .await;
-        }
+        );
+        let _ = crate::services::apprise::send_notification(
+            &state.config.apprise_bin,
+            &[channel.apprise_url],
+            "Tâche de réplication ignorée",
+            &body,
+        )
+        .await;
     }
 }

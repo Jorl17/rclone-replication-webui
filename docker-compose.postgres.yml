@@ -31,6 +31,14 @@ services:
       RCLONE_BIN: rclone
       APPRISE_BIN: apprise
       RUST_LOG: "info,rclone_replication_ui=debug,sea_orm=warn,sqlx=warn"
+      # Secret Manager désactivé pour le test local (creds placeholder `xxxx`).
+      # Pour le réactiver, mets de vraies valeurs Scaleway et décommente :
+      # SCW_SECRET_MANAGER_ENABLED: "true"
+      # SCW_SECRET_KEY: xxxx
+      # SCW_PROJECT_ID: xxxx
+      # SCW_DEFAULT_REGION: fr-par
+      # SCW_SECRET_PATH: /rclone-ui
+      # SECRET_MANAGER_PROVIDER: scaleway
     ports:
       - "3000:3000"
     depends_on:

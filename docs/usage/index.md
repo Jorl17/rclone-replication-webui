@@ -14,6 +14,7 @@ Une fois l'application installée et accessible (par défaut sur [http://localho
 |---|---|
 | [Stockages distants](storages/) | Sources et destinations des réplications (S3, SFTP, Dropbox…) |
 | [Tâches](tasks) | Jobs de réplication source → destination, planifiables |
+| [Chiffrement](encryption) | Chiffrer la destination avec une paire de clés (age / X25519) |
 | [Notifications](notifications) | Canaux Apprise pour recevoir des alertes |
 
 ## Workflow général
@@ -46,4 +47,8 @@ Si une tâche est déjà en cours et que le cron veut la déclencher à nouveau,
 
 ### Mode restauration
 
-Permet de lancer une tâche dans le sens inverse (destination → source). Utile pour restaurer des fichiers depuis une sauvegarde.
+Permet de lire la destination d'une tâche et d'écrire vers une cible choisie (par défaut la source d'origine). Utile pour restaurer des fichiers depuis une sauvegarde.
+
+### Chiffrement asymétrique
+
+Une tâche peut chiffrer les données avant l'envoi (age / X25519). Le serveur ne détient que la **clé publique** (il chiffre, y compris en cron) ; la **clé privée**, jamais stockée, n'est demandée qu'au moment de la restauration. Voir [Chiffrement](encryption).

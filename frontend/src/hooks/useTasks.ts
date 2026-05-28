@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as api from '../api/tasks';
-import { CreateTaskPayload, PatchTaskPayload } from '../types/task';
+import { CreateTaskPayload, PatchTaskPayload, RestorePayload } from '../types/task';
 
 export function useTasks() {
   return useQuery({ queryKey: ['tasks'], queryFn: api.getTasks });
@@ -45,7 +45,7 @@ export function useTriggerTask() {
 export function useRestoreTask() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api.restoreTask(id),
+    mutationFn: ({ id, payload }: { id: string; payload?: RestorePayload }) => api.restoreTask(id, payload),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
   });
 }

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { ArrowLeft, Info } from 'lucide-react';
@@ -6,6 +6,7 @@ import { useTask, usePatchTask } from '../hooks/useTasks';
 import { useNotifications } from '../hooks/useNotifications';
 import { ErrorBanner } from '../components/ui/ErrorBanner';
 import { CronPreview } from '../components/ui/CronPreview';
+import { EncryptionFields } from '../components/tasks/EncryptionFields';
 
 type FormValues = {
   name: string;
@@ -35,6 +36,10 @@ export function TaskEditPage() {
   const watchRetries = watch('max_retries');
   const watchDelay = watch('retry_delay_seconds');
 
+  const [encEnabled, setEncEnabled] = useState(false);
+  const [encPublicKey, setEncPublicKey] = useState('');
+  const [encError, setEncError] = useState<string | null>(null);
+
   useEffect(() => {
     if (task) {
       reset({
@@ -49,11 +54,18 @@ export function TaskEditPage() {
         max_retries: task.max_retries ?? 3,
         retry_delay_seconds: task.retry_delay_seconds ?? 15,
       });
+      setEncEnabled(task.encryption_enabled);
+      setEncPublicKey(task.encryption_public_key || '');
     }
   }, [task, reset]);
 
   const onSubmit = async (values: FormValues) => {
     if (!id) return;
+    if (encEnabled && !encPublicKey.trim()) {
+      setEncError('Clé publique requise pour activer le chiffrement');
+      return;
+    }
+    setEncError(null);
     const flags = values.rclone_flags.trim() ? values.rclone_flags.trim().split(/\s+/) : [];
     const notify_on: string[] = [];
     if (values.notify_on_error) notify_on.push('error');
@@ -71,6 +83,8 @@ export function TaskEditPage() {
           notify_on,
           max_retries: Number(values.max_retries),
           retry_delay_seconds: Number(values.retry_delay_seconds),
+          encryption_enabled: encEnabled,
+          encryption_public_key: encEnabled ? encPublicKey.trim() : null,
         },
       });
       navigate(`/tasks/${id}`);
@@ -140,6 +154,15 @@ export function TaskEditPage() {
             </p>
           )}
         </fieldset>
+
+        {/* Chiffrement */}
+        <EncryptionFields
+          enabled={encEnabled}
+          publicKey={encPublicKey}
+          onEnabledChange={(v) => { setEncEnabled(v); setEncError(null); }}
+          onPublicKeyChange={(v) => { setEncPublicKey(v); setEncError(null); }}
+          error={encError}
+        />
 
         {/* Notifications */}
         <div>

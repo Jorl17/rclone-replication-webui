@@ -29,10 +29,10 @@ pub fn sensitive_fields(remote_type: &str) -> &'static [&'static str] {
 pub fn is_sensitive_key(key: &str) -> bool {
     let key_lower = key.to_ascii_lowercase();
     const SENSITIVE_KEYWORDS: &[&str] = &[
-        "pass",          // pass, password, passphrase
-        "secret",        // secret, client_secret, secret_access_key
-        "token",         // token, refresh_token, access_token
-        "key",           // key, api_key, secret_key (mais pas "publickey"...)
+        "pass",   // pass, password, passphrase
+        "secret", // secret, client_secret, secret_access_key
+        "token",  // token, refresh_token, access_token
+        "key",    // key, api_key, secret_key (mais pas "publickey"...)
         "credential",
         "sas_url",
         "auth",
@@ -45,14 +45,25 @@ pub fn is_sensitive_key(key: &str) -> bool {
 pub fn split_sensitive(
     remote_type: &str,
     config: &serde_json::Map<String, serde_json::Value>,
-) -> (HashMap<String, String>, serde_json::Map<String, serde_json::Value>) {
+) -> (
+    HashMap<String, String>,
+    serde_json::Map<String, serde_json::Value>,
+) {
     let standard_keys = sensitive_fields(remote_type);
     let mut sensitive = HashMap::new();
     let mut public_cfg = serde_json::Map::new();
 
     let is_standard_type = matches!(
         remote_type,
-        "s3" | "sftp" | "ftp" | "smb" | "azureblob" | "sharepoint" | "drive" | "dropbox" | "b2" | "local"
+        "s3" | "sftp"
+            | "ftp"
+            | "smb"
+            | "azureblob"
+            | "sharepoint"
+            | "drive"
+            | "dropbox"
+            | "b2"
+            | "local"
     );
 
     for (k, v) in config {
@@ -63,10 +74,10 @@ pub fn split_sensitive(
         };
 
         if is_sensitive {
-            if let Some(s) = v.as_str() {
-                if !s.is_empty() {
-                    sensitive.insert(k.clone(), s.to_string());
-                }
+            if let Some(s) = v.as_str()
+                && !s.is_empty()
+            {
+                sensitive.insert(k.clone(), s.to_string());
             }
         } else {
             public_cfg.insert(k.clone(), v.clone());

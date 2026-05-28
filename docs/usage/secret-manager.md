@@ -2,7 +2,7 @@
 layout: default
 title: Secret Manager
 parent: Utilisation
-nav_order: 4
+nav_order: 5
 ---
 
 # Secret Manager

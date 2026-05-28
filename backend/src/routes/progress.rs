@@ -1,14 +1,10 @@
-use crate::{
-    errors::AppResult,
-    sse::broadcaster::SseEvent,
-    state::AppState,
-};
+use crate::{errors::AppResult, sse::broadcaster::SseEvent, state::AppState};
 use async_stream::stream;
 use axum::{
     extract::{Path, State},
     response::{
-        sse::{Event, KeepAlive, Sse},
         IntoResponse,
+        sse::{Event, KeepAlive, Sse},
     },
 };
 use futures::Stream;

@@ -1,14 +1,16 @@
 use crate::{
     entities::{remote, task, task_run},
     errors::{AppError, AppResult},
-    models::task::{CreateTaskRequest, LastRunSummary, PatchTaskRequest, TaskWithMeta},
-    services::{scheduler, task_executor},
+    models::task::{
+        CreateTaskRequest, LastRunSummary, PatchTaskRequest, RestoreRequest, TaskWithMeta,
+    },
+    services::{crypto, scheduler, task_executor},
     state::AppState,
 };
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
-    Json,
 };
 use sea_orm::*;
 use serde_json::json;
@@ -64,6 +66,8 @@ pub async fn list(State(state): State<AppState>) -> AppResult<Json<Vec<TaskWithM
             notify_on: t.notify_on,
             max_retries: t.max_retries,
             retry_delay_seconds: t.retry_delay_seconds,
+            encryption_enabled: t.encryption_enabled,
+            encryption_public_key: t.encryption_public_key,
             last_run,
             running,
             created_at: t.created_at.into(),
@@ -83,8 +87,27 @@ pub async fn create(
     }
     // Validate remotes exist
     for remote_id in [req.source_remote_id, req.dest_remote_id] {
-        if remote::Entity::find_by_id(remote_id).one(&state.db).await?.is_none() {
+        if remote::Entity::find_by_id(remote_id)
+            .one(&state.db)
+            .await?
+            .is_none()
+        {
             return Err(AppError::NotFound(format!("Remote {remote_id} not found")));
+        }
+    }
+
+    // Si le chiffrement est activé, la clé publique age doit être présente et valide.
+    if req.encryption_enabled {
+        match req.encryption_public_key.as_deref() {
+            Some(pk) if !pk.trim().is_empty() => {
+                crypto::parse_recipient(pk)
+                    .map_err(|e| AppError::BadRequest(format!("clé publique invalide : {e}")))?;
+            }
+            _ => {
+                return Err(AppError::BadRequest(
+                    "clé publique requise pour activer le chiffrement".into(),
+                ));
+            }
         }
     }
 
@@ -102,6 +125,8 @@ pub async fn create(
         notify_on: Set(req.notify_on),
         max_retries: Set(req.max_retries),
         retry_delay_seconds: Set(req.retry_delay_seconds),
+        encryption_enabled: Set(req.encryption_enabled),
+        encryption_public_key: Set(req.encryption_public_key),
         created_at: Set(chrono::Utc::now().into()),
         updated_at: Set(chrono::Utc::now().into()),
     };
@@ -164,6 +189,8 @@ pub async fn get(
         notify_on: t.notify_on,
         max_retries: t.max_retries,
         retry_delay_seconds: t.retry_delay_seconds,
+        encryption_enabled: t.encryption_enabled,
+        encryption_public_key: t.encryption_public_key,
         last_run,
         running,
         created_at: t.created_at.into(),
@@ -186,10 +213,38 @@ pub async fn patch(
     model.cron_expression = Set(req.cron_expression.unwrap_or(existing.cron_expression));
     model.enabled = Set(req.enabled.unwrap_or(existing.enabled));
     model.rclone_flags = Set(req.rclone_flags.unwrap_or(existing.rclone_flags));
-    model.notification_channel_id = Set(req.notification_channel_id.unwrap_or(existing.notification_channel_id));
+    model.notification_channel_id = Set(req
+        .notification_channel_id
+        .unwrap_or(existing.notification_channel_id));
     model.notify_on = Set(req.notify_on.unwrap_or(existing.notify_on));
     model.max_retries = Set(req.max_retries.unwrap_or(existing.max_retries));
-    model.retry_delay_seconds = Set(req.retry_delay_seconds.unwrap_or(existing.retry_delay_seconds));
+    model.retry_delay_seconds = Set(req
+        .retry_delay_seconds
+        .unwrap_or(existing.retry_delay_seconds));
+
+    // Chiffrement : on résout les valeurs finales puis on valide la clé publique si activé.
+    let resolved_enc_enabled = req
+        .encryption_enabled
+        .unwrap_or(existing.encryption_enabled);
+    let resolved_enc_key = match req.encryption_public_key {
+        Some(v) => v, // Some(Some(clé)) définit, Some(None) efface
+        None => existing.encryption_public_key.clone(), // champ absent → inchangé
+    };
+    if resolved_enc_enabled {
+        match resolved_enc_key.as_deref() {
+            Some(pk) if !pk.trim().is_empty() => {
+                crypto::parse_recipient(pk)
+                    .map_err(|e| AppError::BadRequest(format!("clé publique invalide : {e}")))?;
+            }
+            _ => {
+                return Err(AppError::BadRequest(
+                    "clé publique requise pour activer le chiffrement".into(),
+                ));
+            }
+        }
+    }
+    model.encryption_enabled = Set(resolved_enc_enabled);
+    model.encryption_public_key = Set(resolved_enc_key);
     model.updated_at = Set(chrono::Utc::now().into());
 
     let result = model.update(&state.db).await?;
@@ -198,13 +253,8 @@ pub async fn patch(
     Ok(Json(result))
 }
 
-pub async fn delete(
-    State(state): State<AppState>,
-    Path(id): Path<Uuid>,
-) -> AppResult<StatusCode> {
-    let result = task::Entity::delete_by_id(id)
-        .exec(&state.db)
-        .await?;
+pub async fn delete(State(state): State<AppState>, Path(id): Path<Uuid>) -> AppResult<StatusCode> {
+    let result = task::Entity::delete_by_id(id).exec(&state.db).await?;
 
     if result.rows_affected == 0 {
         return Err(AppError::NotFound(format!("Task {id} not found")));
@@ -224,9 +274,43 @@ pub async fn trigger(
 pub async fn restore(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
+    Json(req): Json<RestoreRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
-    let run_id = task_executor::spawn_task(state, id, task_executor::ExecutionMode::Restore).await?;
-    Ok(Json(json!({"run_id": run_id, "message": "Restore started"})))
+    let t = task::Entity::find_by_id(id)
+        .one(&state.db)
+        .await?
+        .ok_or_else(|| AppError::NotFound(format!("Task {id} not found")))?;
+
+    // La clé privée est obligatoire pour restaurer une destination chiffrée.
+    let has_key = req
+        .private_key
+        .as_deref()
+        .map(|s| !s.trim().is_empty())
+        .unwrap_or(false);
+    if t.encryption_enabled && !has_key {
+        return Err(AppError::BadRequest(
+            "clé privée requise pour restaurer une destination chiffrée".into(),
+        ));
+    }
+
+    // Cible par défaut : la source d'origine de la tâche.
+    let target_remote_id = req.target_remote_id.unwrap_or(t.source_remote_id);
+    let target_path = req.target_path.unwrap_or(t.source_path);
+
+    let params = task_executor::RestoreParams {
+        private_key: req
+            .private_key
+            .filter(|s| !s.trim().is_empty())
+            .map(zeroize::Zeroizing::new),
+        target_remote_id,
+        target_path,
+    };
+
+    let run_id =
+        task_executor::spawn_task(state, id, task_executor::ExecutionMode::Restore(params)).await?;
+    Ok(Json(
+        json!({"run_id": run_id, "message": "Restore started"}),
+    ))
 }
 
 pub async fn status(

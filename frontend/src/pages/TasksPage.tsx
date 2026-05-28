@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Pencil, Play, RotateCcw, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Play, RotateCcw, ToggleLeft, ToggleRight, Trash2, Lock } from 'lucide-react';
 import { useTasks, useDeleteTask, useTriggerTask, useRestoreTask, usePatchTask } from '../hooks/useTasks';
+import { useRemotes } from '../hooks/useRemotes';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { ErrorBanner } from '../components/ui/ErrorBanner';
+import { RestoreModal } from '../components/tasks/RestoreModal';
 import { Tooltip } from '../components/ui/Tooltip';
 import cronstrue from 'cronstrue';
 
@@ -25,9 +27,12 @@ export function TasksPage() {
   const triggerTask = useTriggerTask();
   const restoreTask = useRestoreTask();
   const patchTask = usePatchTask();
+  const { data: remotes } = useRemotes();
   const navigate = useNavigate();
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [restoreId, setRestoreId] = useState<string | null>(null);
+
+  const restoreTaskObj = tasks?.find(t => t.id === restoreId) ?? null;
 
   if (isLoading) return <div className="p-8 text-surface-400">Chargement...</div>;
 
@@ -81,7 +86,14 @@ export function TasksPage() {
                     <button onClick={() => navigate(`/tasks/${task.id}`)} className="font-medium text-brand-700 hover:text-brand-800 hover:underline underline-offset-2">
                       {task.name}
                     </button>
-                    <div className="mt-1"><StatusBadge status={statusVal as 'success' | 'failure' | 'running' | 'disabled' | 'unknown'} /></div>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <StatusBadge status={statusVal as 'success' | 'failure' | 'running' | 'disabled' | 'unknown'} />
+                      {task.encryption_enabled && (
+                        <Tooltip content="Destination chiffrée (age / X25519)">
+                          <span className="inline-flex items-center text-brand-600 cursor-help"><Lock size={12} /></span>
+                        </Tooltip>
+                      )}
+                    </div>
                   </td>
                   <td className="px-5 py-3.5 text-xs font-mono">
                     <div className="text-surface-700">{task.source_remote_name}<span className="text-surface-300">:</span>{task.source_path}</div>
@@ -151,15 +163,16 @@ export function TasksPage() {
         onCancel={() => setConfirmId(null)}
       />
 
-      <ConfirmDialog
-        open={!!restoreId}
-        title="Lancer une restauration ?"
-        message="La restauration synchronise en sens inverse : les fichiers de la destination écraseront ceux de la source. Cette opération peut entraîner une perte de données."
-        confirmLabel="Restaurer"
-        variant="warning"
-        onConfirm={() => { if (restoreId) restoreTask.mutate(restoreId); setRestoreId(null); }}
-        onCancel={() => setRestoreId(null)}
-      />
+      {restoreTaskObj && (
+        <RestoreModal
+          key={restoreTaskObj.id}
+          open
+          task={restoreTaskObj}
+          remotes={remotes || []}
+          onConfirm={(payload) => { restoreTask.mutate({ id: restoreTaskObj.id, payload }); setRestoreId(null); }}
+          onCancel={() => setRestoreId(null)}
+        />
+      )}
     </div>
   );
 }

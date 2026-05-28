@@ -1,7 +1,7 @@
 use super::SecretStore;
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use async_trait::async_trait;
-use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
+use base64::{Engine, engine::general_purpose::STANDARD as BASE64};
 use serde::Deserialize;
 use std::collections::HashMap;
 use uuid::Uuid;
@@ -24,7 +24,13 @@ impl ScalewaySecretStore {
             .timeout(std::time::Duration::from_secs(15))
             .build()
             .expect("reqwest client build");
-        Self { secret_key, project_id, region, path, client }
+        Self {
+            secret_key,
+            project_id,
+            region,
+            path,
+            client,
+        }
     }
 
     fn base_url(&self) -> String {
@@ -66,7 +72,11 @@ impl ScalewaySecretStore {
             name: String,
         }
         let parsed: ListResponse = resp.json().await.context("Scaleway SM list parse")?;
-        Ok(parsed.secrets.into_iter().find(|s| s.name == name).map(|s| s.id))
+        Ok(parsed
+            .secrets
+            .into_iter()
+            .find(|s| s.name == name)
+            .map(|s| s.id))
     }
 
     fn name_for(remote_id: Uuid) -> String {
@@ -153,7 +163,8 @@ impl SecretStore for ScalewaySecretStore {
                 struct CreateResponse {
                     id: String,
                 }
-                let parsed: CreateResponse = resp.json().await.context("Scaleway SM create parse")?;
+                let parsed: CreateResponse =
+                    resp.json().await.context("Scaleway SM create parse")?;
                 parsed.id
             }
         };

@@ -20,6 +20,8 @@ export interface Task {
   notify_on: string[];
   max_retries: number;
   retry_delay_seconds: number;
+  encryption_enabled: boolean;
+  encryption_public_key: string | null;
   last_run: LastRunSummary | null;
   running: boolean;
   created_at: string;
@@ -39,6 +41,8 @@ export interface CreateTaskPayload {
   notify_on: string[];
   max_retries: number;
   retry_delay_seconds: number;
+  encryption_enabled: boolean;
+  encryption_public_key: string | null;
 }
 
 export interface PatchTaskPayload {
@@ -50,4 +54,18 @@ export interface PatchTaskPayload {
   notify_on?: string[];
   max_retries?: number;
   retry_delay_seconds?: number;
+  encryption_enabled?: boolean;
+  encryption_public_key?: string | null;
+}
+
+/**
+ * Charge utile d'une restauration.
+ * - `private_key` : clé privée age, requise uniquement si la destination est chiffrée.
+ *   Transmise en mémoire, jamais sauvegardée.
+ * - `target_remote_id` / `target_path` : où écrire les données restaurées (défaut : source d'origine).
+ */
+export interface RestorePayload {
+  private_key?: string;
+  target_remote_id?: string;
+  target_path?: string;
 }

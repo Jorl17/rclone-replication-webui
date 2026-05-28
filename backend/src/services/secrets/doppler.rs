@@ -1,5 +1,5 @@
 use super::SecretStore;
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use async_trait::async_trait;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -22,11 +22,19 @@ impl DopplerSecretStore {
             .timeout(std::time::Duration::from_secs(15))
             .build()
             .expect("reqwest client build");
-        Self { token, project, config, client }
+        Self {
+            token,
+            project,
+            config,
+            client,
+        }
     }
 
     fn secret_name(remote_id: Uuid) -> String {
-        format!("RCLONE_UI_{}", remote_id.to_string().replace('-', "").to_uppercase())
+        format!(
+            "RCLONE_UI_{}",
+            remote_id.to_string().replace('-', "").to_uppercase()
+        )
     }
 
     fn base_url() -> &'static str {

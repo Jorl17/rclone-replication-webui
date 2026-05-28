@@ -2,7 +2,7 @@
 layout: default
 title: Notifications
 parent: Utilisation
-nav_order: 3
+nav_order: 4
 ---
 
 # Canaux de notification

@@ -119,12 +119,14 @@ fn parse_secret_manager() -> anyhow::Result<Option<SecretManagerConfig>> {
             path_prefix: env::var("VAULT_PATH_PREFIX").unwrap_or_else(|_| "rclone-ui".to_string()),
         },
         "infisical" => SecretManagerConfig::Infisical {
-            host: env::var("INFISICAL_HOST").unwrap_or_else(|_| "https://app.infisical.com".to_string()),
+            host: env::var("INFISICAL_HOST")
+                .unwrap_or_else(|_| "https://app.infisical.com".to_string()),
             client_id: required("INFISICAL_CLIENT_ID")?,
             client_secret: required("INFISICAL_CLIENT_SECRET")?,
             project_id: required("INFISICAL_PROJECT_ID")?,
             environment: env::var("INFISICAL_ENVIRONMENT").unwrap_or_else(|_| "prod".to_string()),
-            secret_path: env::var("INFISICAL_SECRET_PATH").unwrap_or_else(|_| "/rclone-ui".to_string()),
+            secret_path: env::var("INFISICAL_SECRET_PATH")
+                .unwrap_or_else(|_| "/rclone-ui".to_string()),
         },
         "gcp" | "google" | "google-cloud" => SecretManagerConfig::GoogleCloud {
             project_id: required("GCP_PROJECT_ID")?,
@@ -145,5 +147,6 @@ fn parse_secret_manager() -> anyhow::Result<Option<SecretManagerConfig>> {
 }
 
 fn required(key: &str) -> anyhow::Result<String> {
-    env::var(key).map_err(|_| anyhow::anyhow!("{key} is required when SECRET_MANAGER_PROVIDER is enabled"))
+    env::var(key)
+        .map_err(|_| anyhow::anyhow!("{key} is required when SECRET_MANAGER_PROVIDER is enabled"))
 }

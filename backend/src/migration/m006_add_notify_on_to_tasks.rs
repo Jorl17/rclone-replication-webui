@@ -13,9 +13,10 @@ impl MigrationTrait for Migration {
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        manager.get_connection().execute_unprepared(
-            "ALTER TABLE tasks DROP COLUMN IF EXISTS notify_on",
-        ).await?;
+        manager
+            .get_connection()
+            .execute_unprepared("ALTER TABLE tasks DROP COLUMN IF EXISTS notify_on")
+            .await?;
         Ok(())
     }
 }

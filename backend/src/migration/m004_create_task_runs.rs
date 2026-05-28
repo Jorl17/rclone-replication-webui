@@ -25,12 +25,14 @@ impl MigrationTrait for Migration {
         db.execute_unprepared(
             "CREATE UNIQUE INDEX IF NOT EXISTS idx_task_runs_one_running
                 ON task_runs (task_id) WHERE status = 'running'",
-        ).await?;
+        )
+        .await?;
 
         db.execute_unprepared(
             "CREATE INDEX IF NOT EXISTS idx_task_runs_task_started
                 ON task_runs (task_id, started_at DESC)",
-        ).await?;
+        )
+        .await?;
 
         db.execute_unprepared(
             "CREATE OR REPLACE FUNCTION trim_task_runs() RETURNS TRIGGER AS $$
@@ -46,24 +48,30 @@ impl MigrationTrait for Migration {
                 RETURN NULL;
             END;
             $$ LANGUAGE plpgsql",
-        ).await?;
+        )
+        .await?;
 
         // DROP + CREATE pour le trigger (pas de IF NOT EXISTS pour les triggers)
-        db.execute_unprepared("DROP TRIGGER IF EXISTS trg_trim_task_runs ON task_runs").await?;
+        db.execute_unprepared("DROP TRIGGER IF EXISTS trg_trim_task_runs ON task_runs")
+            .await?;
         db.execute_unprepared(
             "CREATE TRIGGER trg_trim_task_runs
             AFTER INSERT ON task_runs
             FOR EACH ROW EXECUTE FUNCTION trim_task_runs()",
-        ).await?;
+        )
+        .await?;
 
         Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let db = manager.get_connection();
-        db.execute_unprepared("DROP TRIGGER IF EXISTS trg_trim_task_runs ON task_runs").await?;
-        db.execute_unprepared("DROP FUNCTION IF EXISTS trim_task_runs").await?;
-        db.execute_unprepared("DROP TABLE IF EXISTS task_runs").await?;
+        db.execute_unprepared("DROP TRIGGER IF EXISTS trg_trim_task_runs ON task_runs")
+            .await?;
+        db.execute_unprepared("DROP FUNCTION IF EXISTS trim_task_runs")
+            .await?;
+        db.execute_unprepared("DROP TABLE IF EXISTS task_runs")
+            .await?;
         Ok(())
     }
 }

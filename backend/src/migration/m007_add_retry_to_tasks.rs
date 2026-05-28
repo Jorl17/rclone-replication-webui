@@ -9,7 +9,8 @@ impl MigrationTrait for Migration {
         let db = manager.get_connection();
         db.execute_unprepared(
             "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS max_retries INT NOT NULL DEFAULT 3",
-        ).await?;
+        )
+        .await?;
         db.execute_unprepared(
             "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS retry_delay_seconds INT NOT NULL DEFAULT 15",
         ).await?;
@@ -18,8 +19,10 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let db = manager.get_connection();
-        db.execute_unprepared("ALTER TABLE tasks DROP COLUMN IF EXISTS max_retries").await?;
-        db.execute_unprepared("ALTER TABLE tasks DROP COLUMN IF EXISTS retry_delay_seconds").await?;
+        db.execute_unprepared("ALTER TABLE tasks DROP COLUMN IF EXISTS max_retries")
+            .await?;
+        db.execute_unprepared("ALTER TABLE tasks DROP COLUMN IF EXISTS retry_delay_seconds")
+            .await?;
         Ok(())
     }
 }

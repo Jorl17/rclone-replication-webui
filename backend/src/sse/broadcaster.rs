@@ -10,7 +10,11 @@ const CHANNEL_CAPACITY: usize = 256;
 /// qui se connectent en cours d'exécution). Le broadcaster ne sert plus qu'à signaler la fin.
 #[derive(Debug, Clone)]
 pub enum SseEvent {
-    Done { status: String, exit_code: Option<i32>, duration_ms: i64 },
+    Done {
+        status: String,
+        exit_code: Option<i32>,
+        duration_ms: i64,
+    },
 }
 
 #[derive(Debug)]

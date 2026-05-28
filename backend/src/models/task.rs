@@ -20,6 +20,8 @@ pub struct TaskWithMeta {
     pub notify_on: Vec<String>,
     pub max_retries: i32,
     pub retry_delay_seconds: i32,
+    pub encryption_enabled: bool,
+    pub encryption_public_key: Option<String>,
     pub last_run: Option<LastRunSummary>,
     pub running: bool,
     pub created_at: DateTime<Utc>,
@@ -52,6 +54,12 @@ pub struct CreateTaskRequest {
     pub max_retries: i32,
     #[serde(default = "default_retry_delay")]
     pub retry_delay_seconds: i32,
+    /// Active le chiffrement asymétrique de la destination (age/X25519).
+    #[serde(default)]
+    pub encryption_enabled: bool,
+    /// Clé publique age (`age1...`). Requise si `encryption_enabled` est vrai.
+    #[serde(default)]
+    pub encryption_public_key: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -64,6 +72,23 @@ pub struct PatchTaskRequest {
     pub notify_on: Option<Vec<String>>,
     pub max_retries: Option<i32>,
     pub retry_delay_seconds: Option<i32>,
+    pub encryption_enabled: Option<bool>,
+    pub encryption_public_key: Option<Option<String>>,
+}
+
+/// Corps de la requête de restauration. Tous les champs sont optionnels :
+/// - `private_key` : clé privée age, obligatoire seulement si la destination est chiffrée.
+///   Jamais stockée côté serveur.
+/// - `target_remote_id` / `target_path` : où écrire les données restaurées. Par défaut, la
+///   source d'origine de la tâche.
+#[derive(Debug, Deserialize)]
+pub struct RestoreRequest {
+    #[serde(default)]
+    pub private_key: Option<String>,
+    #[serde(default)]
+    pub target_remote_id: Option<Uuid>,
+    #[serde(default)]
+    pub target_path: Option<String>,
 }
 
 fn default_true() -> bool {

@@ -20,6 +20,10 @@ pub struct Model {
     pub notify_on: Vec<String>,
     pub max_retries: i32,
     pub retry_delay_seconds: i32,
+    /// Si vrai, les données sont chiffrées (age/X25519) avant envoi vers la destination.
+    pub encryption_enabled: bool,
+    /// Clé publique age (« recipient », `age1...`). La clé privée n'est jamais stockée.
+    pub encryption_public_key: Option<String>,
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
 }
