@@ -128,6 +128,20 @@ npm run dev
 
 Le serveur de développement Vite démarre sur `http://localhost:5173` et proxifie `/api/*` vers le backend.
 
+## Tests
+
+Les tests backend sont dans le module Rust qu'ils couvrent (`#[cfg(test)]`). Les tests frontend sont des fichiers Vitest à côté du TypeScript concerné (`*.test.ts` / `*.test.tsx`).
+
+```bash
+# Backend — tests unitaires, sans base de données
+cd backend && cargo test
+
+# Frontend
+cd frontend && npm test
+```
+
+La CI lance les deux à chaque push et pull request (`.github/workflows/test.yml`).
+
 ## Variables d'environnement
 
 ### Principales
@@ -262,11 +276,13 @@ rclone-replication-ui/
 ```bash
 # Backend
 cd backend && cargo build          # Compiler
+cd backend && cargo test           # Tests
 cd backend && cargo clippy         # Lint
 cd backend && cargo fmt            # Formater
 
 # Frontend
 cd frontend && npm run build       # Build production
+cd frontend && npm run test        # Tests
 cd frontend && npm run dev         # Serveur de développement
 cd frontend && npm run lint        # Lint
 

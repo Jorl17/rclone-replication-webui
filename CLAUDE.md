@@ -111,6 +111,7 @@ cd backend && cargo clippy
 # Frontend
 cd frontend && npm install
 cd frontend && npm run build
+cd frontend && npm run test
 cd frontend && npm run dev
 
 # Docker
