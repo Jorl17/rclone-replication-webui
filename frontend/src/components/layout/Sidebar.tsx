@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { Server, RefreshCw, Bell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '../../i18n/LanguageSwitcher';
@@ -13,7 +13,10 @@ export function Sidebar() {
 
   return (
     <aside className="w-60 shrink-0 bg-surface-900 text-white flex flex-col min-h-screen">
-      <div className="px-5 py-5 border-b border-white/10">
+      <Link
+        to="/"
+        className="block px-5 py-5 border-b border-white/10 cursor-pointer text-inherit no-underline hover:bg-white/5 transition-colors"
+      >
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center shadow-lg shadow-brand-600/25">
             <RefreshCw size={15} className="text-white" />
@@ -23,7 +26,7 @@ export function Sidebar() {
             <p className="text-[10px] text-surface-500 leading-tight">{t('app.tagline')}</p>
           </div>
         </div>
-      </div>
+      </Link>
 
       <nav className="flex-1 px-3 py-4">
         <p className="px-2 mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-surface-500">
