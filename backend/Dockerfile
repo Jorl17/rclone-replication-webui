@@ -13,6 +13,7 @@ RUN mkdir src && echo "fn main() {}" > src/main.rs \
 
 # Compilation de l'application
 COPY src ./src
+COPY locales ./locales
 RUN touch src/main.rs && cargo build --release
 
 # ─── Rclone stage ────────────────────────────────────────────────────────────

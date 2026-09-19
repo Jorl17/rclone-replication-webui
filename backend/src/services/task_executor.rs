@@ -2,7 +2,12 @@ use crate::{
     entities::{encrypted_file_state, notification_channel, remote, task, task_run},
     errors::{AppError, AppResult},
     models::remote::RcloneRemote,
-    services::{apprise, crypto, crypto_transfer, rclone},
+    models::notification::{ChannelTemplates, render_channel_event},
+    services::{
+        apprise, crypto, crypto_transfer,
+        notification_message::{NotificationContext, NotificationEvent},
+        rclone,
+    },
     sse::broadcaster::SseEvent,
     sse::global::GlobalEvent,
     state::{AppState, RunningTask},
@@ -252,31 +257,13 @@ async fn execute_task_background(
         };
 
         if should_notify {
-            let (subject, detail) = if exit_code != 0 {
-                let logs_tail = error_logs.lines().take(50).collect::<Vec<_>>().join("\n");
-
-                let mut body = format!(
-                    "**Tâche** : `{task_id}`\n\
-                     **Run** : `{run_id}`\n\
-                     **Code de sortie** : `{exit_code}`\n\
-                     \n\
-                     **Logs** :\n\
-                     ```\n\
-                     {logs_tail}\n\
-                     ```"
-                );
-                body.truncate(4000);
-                ("Échec de la tâche de réplication", body)
+            let event = if exit_code != 0 {
+                NotificationEvent::Error
             } else {
-                let body = format!(
-                    "**Tâche** : `{task_id}`\n\
-                     **Run** : `{run_id}`\n\
-                     \n\
-                     La synchronisation s'est terminée avec succès."
-                );
-                ("Tâche de réplication terminée avec succès", body)
+                NotificationEvent::Success
             };
-            send_notification(&state, channel_id, subject, &detail).await;
+            let ctx = NotificationContext::for_run(task_id, run_id, Some(exit_code), &error_logs);
+            send_run_notification(&state, channel_id, event, &ctx).await;
         }
     }
 }
@@ -999,7 +986,12 @@ async fn finish_run(
     tracing::info!("Run {run_id} finished status={status} in {duration_ms}ms");
 }
 
-async fn send_notification(state: &AppState, channel_id: Uuid, subject: &str, detail: &str) {
+async fn send_run_notification(
+    state: &AppState,
+    channel_id: Uuid,
+    event: NotificationEvent,
+    ctx: &NotificationContext,
+) {
     let channel = match notification_channel::Entity::find_by_id(channel_id)
         .filter(notification_channel::Column::Enabled.eq(true))
         .one(&state.db)
@@ -1009,11 +1001,13 @@ async fn send_notification(state: &AppState, channel_id: Uuid, subject: &str, de
         _ => return,
     };
 
+    let templates = ChannelTemplates::from_json(&channel.templates);
+    let message = render_channel_event(&channel.language, &templates, event, ctx);
     let _ = apprise::send_notification(
         &state.config.apprise_bin,
         &[channel.apprise_url],
-        subject,
-        detail,
+        &message.subject,
+        &message.body,
     )
     .await;
 }

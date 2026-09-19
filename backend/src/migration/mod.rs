@@ -10,6 +10,7 @@ mod m007_add_retry_to_tasks;
 mod m008_add_skipped_status;
 mod m009_add_encryption_to_tasks;
 mod m010_create_encrypted_file_state;
+mod m011_add_notification_channel_language;
 
 pub struct Migrator;
 
@@ -27,6 +28,7 @@ impl MigratorTrait for Migrator {
             Box::new(m008_add_skipped_status::Migration),
             Box::new(m009_add_encryption_to_tasks::Migration),
             Box::new(m010_create_encrypted_file_state::Migration),
+            Box::new(m011_add_notification_channel_language::Migration),
         ]
     }
 }

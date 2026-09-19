@@ -46,6 +46,7 @@ pub fn build_router(state: AppState) -> Router {
             "/api/notifications",
             get(notifications::list).post(notifications::create),
         )
+        .route("/api/notifications/preview", post(notifications::preview))
         .route(
             "/api/notifications/{id}",
             get(notifications::get)

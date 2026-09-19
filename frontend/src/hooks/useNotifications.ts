@@ -1,6 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import * as api from '../api/notifications';
-import { CreateChannelPayload } from '../types/notification';
+import { ChannelTemplates, CreateChannelPayload } from '../types/notification';
+import type { SupportedLanguage } from '../i18n';
 
 export function useNotifications() {
   return useQuery({ queryKey: ['notifications'], queryFn: api.getChannels });
@@ -32,4 +33,17 @@ export function useDeleteChannel() {
 
 export function useTestChannel() {
   return useMutation({ mutationFn: (id: string) => api.testChannel(id) });
+}
+
+export function useNotificationPreview(
+  language: SupportedLanguage,
+  templates: ChannelTemplates,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ['notification-preview', language, templates],
+    queryFn: () => api.previewNotification({ language, templates }),
+    enabled,
+    placeholderData: keepPreviousData,
+  });
 }

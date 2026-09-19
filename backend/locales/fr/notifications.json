@@ -1,0 +1,19 @@
+{
+  "reason": "L'exécution précédente est encore en cours",
+  "error": {
+    "subject": "Échec de la tâche de réplication",
+    "body": "**Tâche** : `{task_id}`\n**Run** : `{run_id}`\n**Code de sortie** : `{exit_code}`\n\n**Logs** :\n```\n{logs}\n```"
+  },
+  "success": {
+    "subject": "Tâche de réplication terminée avec succès",
+    "body": "**Tâche** : `{task_id}`\n**Run** : `{run_id}`\n\nLa synchronisation s'est terminée avec succès."
+  },
+  "skipped": {
+    "subject": "Tâche de réplication ignorée",
+    "body": "**Tâche** : `{task_id}`\n**Raison** : L'exécution précédente est encore en cours\n\nLa planification cron a tenté de lancer cette tâche, mais la synchronisation précédente n'est pas terminée. L'exécution a été _ignorée_."
+  },
+  "test": {
+    "subject": "Test — rclone-ui",
+    "body": "Ce message confirme que le canal de notification **fonctionne correctement**.\n\n_Envoyé depuis rclone-ui._"
+  }
+}

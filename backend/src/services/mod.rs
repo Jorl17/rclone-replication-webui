@@ -1,5 +1,6 @@
 pub mod apprise;
 pub mod crypto;
+pub mod notification_message;
 pub mod crypto_transfer;
 pub mod oauth;
 pub mod rclone;

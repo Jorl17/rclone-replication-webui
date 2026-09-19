@@ -1,0 +1,19 @@
+{
+  "reason": "A execução anterior ainda está em curso",
+  "error": {
+    "subject": "Falha da tarefa de replicação",
+    "body": "**Tarefa** : `{task_id}`\n**Execução** : `{run_id}`\n**Código de saída** : `{exit_code}`\n\n**Registos** :\n```\n{logs}\n```"
+  },
+  "success": {
+    "subject": "Tarefa de replicação concluída com sucesso",
+    "body": "**Tarefa** : `{task_id}`\n**Execução** : `{run_id}`\n\nA sincronização terminou com sucesso."
+  },
+  "skipped": {
+    "subject": "Tarefa de replicação ignorada",
+    "body": "**Tarefa** : `{task_id}`\n**Motivo** : {reason}\n\nO agendamento cron tentou iniciar esta tarefa, mas a sincronização anterior ainda não terminou. A execução foi _ignorada_."
+  },
+  "test": {
+    "subject": "Teste — rclone-ui",
+    "body": "Esta mensagem confirma que o canal de notificação **funciona corretamente**.\n\n_Enviado a partir do rclone-ui._"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "reason": "The previous run is still in progress",
+  "error": {
+    "subject": "Replication task failed",
+    "body": "**Task**: `{task_id}`\n**Run**: `{run_id}`\n**Exit code**: `{exit_code}`\n\n**Logs**:\n```\n{logs}\n```"
+  },
+  "success": {
+    "subject": "Replication task completed successfully",
+    "body": "**Task**: `{task_id}`\n**Run**: `{run_id}`\n\nThe synchronization completed successfully."
+  },
+  "skipped": {
+    "subject": "Replication task skipped",
+    "body": "**Task**: `{task_id}`\n**Reason**: {reason}\n\nThe cron schedule tried to start this task, but the previous synchronization has not finished. The run was _skipped_."
+  },
+  "test": {
+    "subject": "Test — rclone-ui",
+    "body": "This message confirms that the notification channel is **working correctly**.\n\n_Sent from rclone-ui._"
+  }
+}

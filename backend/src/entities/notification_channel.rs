@@ -9,8 +9,21 @@ pub struct Model {
     pub name: String,
     pub apprise_url: String,
     pub enabled: bool,
+    #[serde(default = "default_language")]
+    pub language: String,
+    #[sea_orm(column_type = "JsonBinary")]
+    #[serde(default = "default_templates")]
+    pub templates: serde_json::Value,
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
+}
+
+fn default_language() -> String {
+    "fr".to_string()
+}
+
+fn default_templates() -> serde_json::Value {
+    serde_json::json!({})
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

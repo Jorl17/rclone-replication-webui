@@ -154,19 +154,25 @@ async fn log_skipped_run(
             _ => return,
         };
 
-        let body = format!(
-            "**Tâche** : `{task_id}`\n\
-                 **Raison** : L'exécution précédente est encore en cours\n\
-                 \n\
-                 La planification cron a tenté de lancer cette tâche, \
-                 mais la synchronisation précédente n'est pas terminée. \
-                 L'exécution a été _ignorée_."
+        let templates =
+            crate::models::notification::ChannelTemplates::from_json(&channel.templates);
+        let ctx = crate::services::notification_message::NotificationContext::for_run(
+            task_id,
+            uuid::Uuid::nil(),
+            None,
+            "",
+        );
+        let message = crate::models::notification::render_channel_event(
+            &channel.language,
+            &templates,
+            crate::services::notification_message::NotificationEvent::Skipped,
+            &ctx,
         );
         let _ = crate::services::apprise::send_notification(
             &state.config.apprise_bin,
             &[channel.apprise_url],
-            "Tâche de réplication ignorée",
-            &body,
+            &message.subject,
+            &message.body,
         )
         .await;
     }
