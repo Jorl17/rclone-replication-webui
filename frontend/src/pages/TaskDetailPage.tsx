@@ -4,7 +4,8 @@ import { Play, RotateCcw, Pencil, ChevronDown, ChevronRight, ArrowLeft, Lock } f
 import { useTranslation } from 'react-i18next';
 import { useTask, useTriggerTask, useRestoreTask } from '../hooks/useTasks';
 import { useRemotes } from '../hooks/useRemotes';
-import { useTaskRuns, useRun } from '../hooks/useTaskRuns';
+import { useTaskRuns } from '../hooks/useTaskRuns';
+import { RunLogViewer } from '../components/tasks/RunLogViewer';
 import { useTaskProgress } from '../hooks/useTaskProgress';
 import { LiveProgressPanel } from '../components/progress/LiveProgressPanel';
 import { StatusBadge } from '../components/ui/StatusBadge';
@@ -69,7 +70,6 @@ export function TaskDetailPage() {
   const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
   const [forceConnect, setForceConnect] = useState(false);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
-  const { data: runDetail } = useRun(selectedRunId || '');
   const progress = useTaskProgress(id || null, task?.running || false, forceConnect);
 
   if (forceConnect && (task?.running || progress.done)) {
@@ -205,8 +205,8 @@ export function TaskDetailPage() {
                     {isExpanded && (
                       <tr>
                         <td colSpan={6} className="p-0 border-t-0">
-                          <div className="bg-surface-950 px-5 py-4 font-mono text-xs text-surface-300 whitespace-pre-wrap max-h-72 overflow-y-auto animate-slide-down">
-                            {runDetail?.log_output || <span className="text-surface-600 animate-pulse">{t('tasks.detail.loadingLogs')}</span>}
+                          <div className="animate-slide-down">
+                            {selectedRunId && <RunLogViewer runId={selectedRunId} />}
                           </div>
                         </td>
                       </tr>

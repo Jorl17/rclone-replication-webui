@@ -4,6 +4,7 @@ pub mod notification_message;
 pub mod crypto_transfer;
 pub mod oauth;
 pub mod rclone;
+pub mod run_log;
 pub mod scheduler;
 pub mod secrets;
 pub mod task_executor;

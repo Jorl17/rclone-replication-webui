@@ -41,6 +41,7 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/oauth/callback", get(oauth::callback))
         // Runs
         .route("/api/runs/{run_id}", get(runs::get_run))
+        .route("/api/runs/{run_id}/logs", get(runs::get_run_logs))
         // Notifications
         .route(
             "/api/notifications",

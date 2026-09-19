@@ -30,5 +30,24 @@ export interface TaskRunSummary {
 }
 
 export interface TaskRun extends TaskRunSummary {
-  log_output: string | null;
+  log_bytes?: number;
 }
+
+export interface RunLogLine {
+  offset: number;
+  text: string;
+}
+
+export interface RunLogPage {
+  lines: RunLogLine[];
+  total_bytes: number;
+  at_start: boolean;
+  at_end: boolean;
+  prev_offset: number | null;
+  next_offset: number | null;
+}
+
+export type RunLogQuery =
+  | { from: 'start' | 'end' }
+  | { after: number }
+  | { before: number };
