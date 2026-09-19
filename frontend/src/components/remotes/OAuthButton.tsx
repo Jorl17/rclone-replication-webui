@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { KeyRound, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   /** Type rclone : 'dropbox', 'drive', 'onedrive' */
@@ -16,13 +17,14 @@ interface Props {
  * via window.postMessage envoyé par la page de callback du backend.
  */
 export function OAuthButton({ provider, label, clientId, clientSecret, onSuccess }: Props) {
+  const { t } = useTranslation();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleClick = () => {
     setError(null);
     if (!clientId || !clientSecret) {
-      setError('Renseignez d\'abord le Client ID et le Client Secret avant de connecter.');
+      setError(t('remotes.oauth.needCredentials'));
       return;
     }
 
@@ -35,7 +37,7 @@ export function OAuthButton({ provider, label, clientId, clientSecret, onSuccess
 
     const popup = window.open(url, 'rclone-ui-oauth', 'width=600,height=720,scrollbars=yes');
     if (!popup) {
-      setError('Impossible d\'ouvrir la fenêtre OAuth. Autorisez les popups pour ce site.');
+      setError(t('remotes.oauth.popupBlocked'));
       return;
     }
 
@@ -49,12 +51,11 @@ export function OAuthButton({ provider, label, clientId, clientSecret, onSuccess
       if (e.data.success) {
         onSuccess(JSON.stringify(e.data.token));
       } else {
-        setError(e.data.error || 'Échec du flow OAuth.');
+        setError(e.data.error || t('remotes.oauth.failed'));
       }
     };
     window.addEventListener('message', onMessage);
 
-    // Détecte la fermeture manuelle de la popup
     const closedCheck = window.setInterval(() => {
       if (popup.closed) {
         window.removeEventListener('message', onMessage);
@@ -74,10 +75,10 @@ export function OAuthButton({ provider, label, clientId, clientSecret, onSuccess
           className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors"
         >
           {pending ? <Loader2 size={14} className="animate-spin" /> : <KeyRound size={14} />}
-          Connecter via OAuth ({label})
+          {t('remotes.oauth.connect', { provider: label })}
         </button>
         <p className="text-xs text-brand-700">
-          Auth interactive — remplit le champ « Token » automatiquement.
+          {t('remotes.oauth.hint')}
         </p>
       </div>
       {error && <p className="text-xs text-red-600 mt-2">{error}</p>}

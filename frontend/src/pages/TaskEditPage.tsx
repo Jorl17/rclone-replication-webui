@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { ArrowLeft, Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useTask, usePatchTask } from '../hooks/useTasks';
 import { useNotifications } from '../hooks/useNotifications';
 import { ErrorBanner } from '../components/ui/ErrorBanner';
 import { CronPreview } from '../components/ui/CronPreview';
 import { EncryptionFields } from '../components/tasks/EncryptionFields';
+import { RetryPreview } from '../components/tasks/RetryPreview';
 
 type FormValues = {
   name: string;
@@ -22,6 +24,7 @@ type FormValues = {
 };
 
 export function TaskEditPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: task } = useTask(id || '');
@@ -62,7 +65,7 @@ export function TaskEditPage() {
   const onSubmit = async (values: FormValues) => {
     if (!id) return;
     if (encEnabled && !encPublicKey.trim()) {
-      setEncError('Clé publique requise pour activer le chiffrement');
+      setEncError(t('tasks.encryptionRequired'));
       return;
     }
     setEncError(null);
@@ -96,66 +99,55 @@ export function TaskEditPage() {
   return (
     <div className="p-8 max-w-lg animate-fade-in">
       <button onClick={() => navigate(`/tasks/${id}`)} className="flex items-center gap-1.5 text-sm text-surface-500 hover:text-brand-600 mb-4 transition-colors">
-        <ArrowLeft size={14} /> Retour au détail
+        <ArrowLeft size={14} /> {t('tasks.form.backToDetail')}
       </button>
 
-      <h1 className="text-2xl font-bold text-surface-900 mb-1">Modifier la tâche</h1>
+      <h1 className="text-2xl font-bold text-surface-900 mb-1">{t('tasks.form.editTitle')}</h1>
       <p className="text-sm text-surface-500 mb-4">
-        Ajustez le nom, la planification, les options ou les notifications.
+        {t('tasks.form.editSubtitle')}
       </p>
 
       <div className="flex items-start gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6">
         <Info size={16} className="shrink-0 mt-0.5 text-amber-500" />
-        <span>Les chemins source et destination ne peuvent pas être modifiés après création.</span>
+        <span>{t('tasks.form.pathsLocked')}</span>
       </div>
 
       {patchTask.error && <div className="mb-4"><ErrorBanner message={(patchTask.error as Error).message} /></div>}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-surface-700 mb-1">Nom <span className="text-red-400">*</span></label>
-          <input {...register('name', { required: 'Requis' })} className={inputCls} />
+          <label className="block text-sm font-medium text-surface-700 mb-1">{t('tasks.form.name')} <span className="text-red-400">*</span></label>
+          <input {...register('name', { required: t('validation.required') })} className={inputCls} />
           {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium text-surface-700 mb-1">Planification automatique</label>
-          <input {...register('cron_expression')} className={`${inputCls} font-mono`} placeholder="0 2 * * *" />
-          <p className="text-xs text-surface-400 mt-1">Expression cron. Laisser vide = déclenchement manuel uniquement.</p>
+          <label className="block text-sm font-medium text-surface-700 mb-1">{t('tasks.form.schedule')}</label>
+          <input {...register('cron_expression')} className={`${inputCls} font-mono`} placeholder={t('tasks.form.cronPlaceholder')} />
+          <p className="text-xs text-surface-400 mt-1">{t('tasks.form.cronHelpEdit')}</p>
           <CronPreview expression={watch('cron_expression')} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-surface-700 mb-1">Options rclone supplémentaires</label>
+          <label className="block text-sm font-medium text-surface-700 mb-1">{t('tasks.form.rcloneFlags')}</label>
           <input {...register('rclone_flags')} className={`${inputCls} font-mono`} placeholder="--bwlimit 10M" />
         </div>
 
-        {/* Retry */}
         <fieldset className="border border-surface-200 rounded-lg p-4 space-y-3">
-          <legend className="text-xs font-semibold text-surface-500 uppercase tracking-wider px-1">Retry en cas d'échec</legend>
+          <legend className="text-xs font-semibold text-surface-500 uppercase tracking-wider px-1">{t('tasks.retry.legend')}</legend>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-1">Nombre de tentatives</label>
+              <label className="block text-sm font-medium text-surface-700 mb-1">{t('tasks.retry.attempts')}</label>
               <input {...register('max_retries', { valueAsNumber: true, min: 0, max: 20 })} type="number" min={0} max={20} className={inputCls} />
-              <p className="text-xs text-surface-400 mt-1">0 = pas de retry.</p>
+              <p className="text-xs text-surface-400 mt-1">{t('tasks.retry.attemptsHelpShort')}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-1">Délai de base (secondes)</label>
+              <label className="block text-sm font-medium text-surface-700 mb-1">{t('tasks.retry.baseDelay')}</label>
               <input {...register('retry_delay_seconds', { valueAsNumber: true, min: 1 })} type="number" min={1} className={inputCls} />
-              <p className="text-xs text-surface-400 mt-1">Multiplié par le n° de tentative.</p>
+              <p className="text-xs text-surface-400 mt-1">{t('tasks.retry.baseDelayHelp')}</p>
             </div>
           </div>
-          {Number(watchRetries) > 0 && (
-            <p className="text-xs text-surface-500 bg-surface-50 rounded-lg px-3 py-2">
-              Si la tâche échoue, elle sera relancée jusqu'à <strong>{watchRetries} fois</strong> :{' '}
-              {Array.from({ length: Math.min(Number(watchRetries), 3) }, (_, i) => {
-                const delay = Number(watchDelay) * (i + 1);
-                return `tentative ${i + 2} après ${delay}s`;
-              }).join(', ')}
-              {Number(watchRetries) > 3 && ', ...'}
-            </p>
-          )}
+          <RetryPreview attempts={Number(watchRetries)} delaySeconds={Number(watchDelay)} />
         </fieldset>
 
-        {/* Chiffrement */}
         <EncryptionFields
           enabled={encEnabled}
           publicKey={encPublicKey}
@@ -164,26 +156,25 @@ export function TaskEditPage() {
           error={encError}
         />
 
-        {/* Notifications */}
         <div>
-          <label className="block text-sm font-medium text-surface-700 mb-1">Notifications</label>
+          <label className="block text-sm font-medium text-surface-700 mb-1">{t('tasks.notify.label')}</label>
           <select {...register('notification_channel_id')} className={inputCls}>
-            <option value="">-- aucune notification --</option>
+            <option value="">{t('tasks.notify.none')}</option>
             {channels?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
           <div className={`mt-2.5 flex items-center gap-4 transition-opacity ${!selectedChannel ? 'opacity-30 pointer-events-none' : ''}`}>
-            <span className="text-xs text-surface-500">Notifier en cas de :</span>
+            <span className="text-xs text-surface-500">{t('tasks.notify.notifyOn')}</span>
             <label className="flex items-center gap-1.5 text-sm text-surface-700 cursor-pointer">
               <input type="checkbox" {...register('notify_on_error')} className="rounded border-surface-300 text-brand-600 focus:ring-brand-500" />
-              Erreur
+              {t('tasks.notify.onError')}
             </label>
             <label className="flex items-center gap-1.5 text-sm text-surface-700 cursor-pointer">
               <input type="checkbox" {...register('notify_on_success')} className="rounded border-surface-300 text-brand-600 focus:ring-brand-500" />
-              Succès
+              {t('tasks.notify.onSuccess')}
             </label>
             <label className="flex items-center gap-1.5 text-sm text-surface-700 cursor-pointer">
               <input type="checkbox" {...register('notify_on_skipped')} className="rounded border-surface-300 text-amber-600 focus:ring-amber-500" />
-              Ignorée
+              {t('tasks.notify.onSkipped')}
             </label>
           </div>
         </div>
@@ -191,17 +182,17 @@ export function TaskEditPage() {
         <div className="flex items-center gap-3 py-1">
           <input type="checkbox" {...register('enabled')} id="enabled" className="rounded border-surface-300 text-brand-600 focus:ring-brand-500" />
           <label htmlFor="enabled" className="text-sm text-surface-700 cursor-pointer">
-            Tâche activée
-            <span className="block text-xs text-surface-400">Si désactivée, la planification cron est ignorée.</span>
+            {t('tasks.form.taskEnabled')}
+            <span className="block text-xs text-surface-400">{t('tasks.form.taskEnabledHelp')}</span>
           </label>
         </div>
 
         <div className="flex gap-3 pt-4 border-t border-surface-200">
           <button type="submit" disabled={isSubmitting} className="px-5 py-2.5 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors shadow-sm">
-            Enregistrer
+            {t('common.save')}
           </button>
           <button type="button" onClick={() => navigate(`/tasks/${id}`)} className="px-5 py-2.5 border border-surface-300 text-surface-600 rounded-lg text-sm font-medium hover:bg-surface-50 transition-colors">
-            Annuler
+            {t('common.cancel')}
           </button>
         </div>
       </form>

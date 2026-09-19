@@ -1,32 +1,33 @@
 import { NavLink } from 'react-router-dom';
 import { Server, RefreshCw, Bell } from 'lucide-react';
-
-const links = [
-  { to: '/tasks', label: 'Tâches', desc: 'Gérer les réplications', icon: RefreshCw },
-  { to: '/remotes', label: 'Stockages', desc: 'Sources et destinations', icon: Server },
-  { to: '/notifications', label: 'Notifications', desc: 'Alertes et canaux', icon: Bell },
-];
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from '../../i18n/LanguageSwitcher';
 
 export function Sidebar() {
+  const { t } = useTranslation();
+  const links = [
+    { to: '/tasks', label: t('nav.tasks'), desc: t('nav.tasksDesc'), icon: RefreshCw },
+    { to: '/remotes', label: t('nav.remotes'), desc: t('nav.remotesDesc'), icon: Server },
+    { to: '/notifications', label: t('nav.notifications'), desc: t('nav.notificationsDesc'), icon: Bell },
+  ];
+
   return (
     <aside className="w-60 shrink-0 bg-surface-900 text-white flex flex-col min-h-screen">
-      {/* Logo */}
       <div className="px-5 py-5 border-b border-white/10">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center shadow-lg shadow-brand-600/25">
             <RefreshCw size={15} className="text-white" />
           </div>
           <div>
-            <span className="font-semibold text-sm tracking-tight">rclone-ui</span>
-            <p className="text-[10px] text-surface-500 leading-tight">Réplication de fichiers</p>
+            <span className="font-semibold text-sm tracking-tight">{t('app.name')}</span>
+            <p className="text-[10px] text-surface-500 leading-tight">{t('app.tagline')}</p>
           </div>
         </div>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 px-3 py-4">
         <p className="px-2 mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-surface-500">
-          Navigation
+          {t('nav.section')}
         </p>
         <ul className="space-y-0.5">
           {links.map(({ to, label, desc, icon: Icon }) => (
@@ -54,10 +55,13 @@ export function Sidebar() {
         </ul>
       </nav>
 
-      {/* Footer */}
-      <div className="px-5 py-4 border-t border-white/10">
+      <div className="px-5 py-4 border-t border-white/10 space-y-3">
+        <LanguageSwitcher />
         <p className="text-[10px] text-surface-600">
-          Produit par <a href="https://sixmon.net" target="_blank" rel="noopener noreferrer" className="text-surface-400 hover:text-brand-400 transition-colors">Sixmon</a> & <a href="https://claude.ai" target="_blank" rel="noopener noreferrer" className="text-surface-400 hover:text-brand-400 transition-colors">Claude</a>
+          {t('app.madeBy')}{' '}
+          <a href="https://sixmon.net" target="_blank" rel="noopener noreferrer" className="text-surface-400 hover:text-brand-400 transition-colors">Sixmon</a>
+          {' '}&{' '}
+          <a href="https://claude.ai" target="_blank" rel="noopener noreferrer" className="text-surface-400 hover:text-brand-400 transition-colors">Claude</a>
         </p>
       </div>
     </aside>

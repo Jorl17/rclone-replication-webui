@@ -17,3 +17,6 @@ frontend/dist/
 
 tmp/
 .claude
+
+# Local screenshot mocks — never commit
+/*.png

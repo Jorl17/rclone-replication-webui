@@ -1,4 +1,5 @@
 import { AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 type Variant = 'danger' | 'warning';
 
@@ -17,7 +18,8 @@ interface Props {
   onCancel: () => void;
 }
 
-export function ConfirmDialog({ open, title, message, confirmLabel = 'Supprimer', variant = 'danger', onConfirm, onCancel }: Props) {
+export function ConfirmDialog({ open, title, message, confirmLabel, variant = 'danger', onConfirm, onCancel }: Props) {
+  const { t } = useTranslation();
   if (!open) return null;
   const v = variants[variant];
   return (
@@ -37,13 +39,13 @@ export function ConfirmDialog({ open, title, message, confirmLabel = 'Supprimer'
             onClick={onCancel}
             className="px-4 py-2 text-sm font-medium text-surface-600 border border-surface-200 rounded-lg hover:bg-surface-50 transition-colors"
           >
-            Annuler
+            {t('common.cancel')}
           </button>
           <button
             onClick={onConfirm}
             className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${v.btnBg} ${v.btnHover}`}
           >
-            {confirmLabel}
+            {confirmLabel ?? t('common.delete')}
           </button>
         </div>
       </div>

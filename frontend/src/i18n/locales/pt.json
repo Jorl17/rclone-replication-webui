@@ -1,0 +1,614 @@
+{
+  "app": {
+    "documentTitle": "rclone-ui — Replicação de ficheiros",
+    "madeBy": "Feito por",
+    "name": "rclone-ui",
+    "tagline": "Replicação de ficheiros"
+  },
+  "common": {
+    "actions": "Ações",
+    "add": "Adicionar",
+    "cancel": "Cancelar",
+    "choose": "-- escolher --",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "enabled": "Ativado",
+    "loading": "A carregar...",
+    "name": "Nome",
+    "none": "Nenhuma",
+    "required": "Obrigatório",
+    "save": "Guardar",
+    "saveChanges": "Guardar alterações",
+    "type": "Tipo"
+  },
+  "cron": {
+    "format5": "5 campos",
+    "format6": "6 campos (com segundos)",
+    "formatMacro": "macro",
+    "invalidFallback": "Expressão inválida",
+    "invalidTitle": "Expressão cron inválida",
+    "nextRuns": "Próximas execuções:",
+    "valid": "Válida"
+  },
+  "encryption": {
+    "enable": "Encriptar os dados antes do envio (age / X25519)",
+    "enableHelp": "O servidor guarda apenas a chave pública: consegue encriptar, mas não desencriptar. A chave privada só é pedida no restauro.",
+    "generatePair": "Gerar um par",
+    "keepPrivate": "Guarde com cuidado a chave privada correspondente: sem ela, os dados encriptados são irrecuperáveis.",
+    "legend": "Encriptação do destino",
+    "orPaste": "ou cole uma chave pública age já existente",
+    "publicKey": "Chave pública"
+  },
+  "keygen": {
+    "copyPrivate": "Copiar a chave privada",
+    "copyPublic": "Copiar a chave pública",
+    "failed": "Falha ao gerar a chave",
+    "generating": "A gerar...",
+    "privateKey": "Chave privada (NÃO é guardada — armazene-a agora)",
+    "publicKey": "Chave pública (será guardada na tarefa)",
+    "regenerate": "Gerar de novo",
+    "savedConfirm": "Guardei a chave privada num sítio seguro",
+    "title": "Gerar um par de chaves",
+    "usePublic": "Usar esta chave pública",
+    "warning": "Esta chave privada é a <bold>única</bold> forma de desencriptar as cópias de segurança. <bold>Não é guardada</bold> pela aplicação e <bold>nunca mais será mostrada</bold>. Guarde-a num gestor de palavras-passe."
+  },
+  "language": {
+    "label": "Idioma",
+    "native": {
+      "en": "English",
+      "fr": "Français",
+      "pt": "Português"
+    }
+  },
+  "nav": {
+    "notifications": "Notificações",
+    "notificationsDesc": "Alertas e canais",
+    "remotes": "Armazenamentos",
+    "remotesDesc": "Origens e destinos",
+    "section": "Navegação",
+    "tasks": "Tarefas",
+    "tasksDesc": "Gerir as replicações"
+  },
+  "notifications": {
+    "form": {
+      "back": "Voltar às notificações",
+      "channelEnabled": "Canal ativado",
+      "channelEnabledHelp": "Se estiver desativado, nenhuma notificação será enviada por este canal.",
+      "createSubmit": "Criar o canal",
+      "createSubtitle": "Configure um canal para receber alertas por e-mail, Slack, Mattermost, etc.",
+      "createTitle": "Novo canal de notificação",
+      "editSubtitle": "Altere os parâmetros deste canal de notificação.",
+      "editTitle": "Editar o canal",
+      "name": "Nome do canal",
+      "nameHelp": "Um nome claro para identificar este canal na lista.",
+      "namePlaceholder": "ex.: Alertas Mattermost da equipa de infra",
+      "url": "URL Apprise",
+      "urlHelp": "Formato Apprise. Exemplos:<br /><code>mailto://user:pass@smtp.example.com</code> (e-mail)<br /><code>slack://tokenA/tokenB/tokenC</code> (Slack)<br /><code>mmost://host/webhook</code> (Mattermost)",
+      "languageHelp": "Idioma das mensagens enviadas por este canal. Na criação, é proposto o idioma da interface.",
+      "messageLegend": "Mensagens",
+      "messageHelp": "Deixe o assunto e o corpo em branco para usar o texto predefinido no idioma escolhido.",
+      "subject": "Assunto",
+      "body": "Corpo",
+      "preview": "Pré-visualização",
+      "previewFailed": "Não foi possível carregar a pré-visualização.",
+      "event": "Caso",
+      "eventTest": "Teste",
+      "placeholders": "Variáveis: {task_id}, {run_id}, {exit_code}, {logs}, {reason}"
+    },
+    "list": {
+      "active": "Ativo",
+      "addTooltip": "Adicionar um novo canal de notificação",
+      "colEnabled": "Ativado",
+      "colUrl": "URL Apprise",
+      "colUrlTooltip": "URL no formato Apprise (protocolo://...). Define para onde enviar os alertas.",
+      "colUsedBy": "Usado por",
+      "colUsedByTooltip": "Número de tarefas que usam este canal",
+      "deleteBlocked": "Não é possível eliminar: está a ser usado por tarefas",
+      "deleteMessage": "Esta ação é irreversível. As tarefas que o usam deixarão de receber notificações.",
+      "deleteTitle": "Eliminar este canal?",
+      "deleteTooltip": "Eliminar este canal",
+      "editTooltip": "Editar este canal",
+      "emptyBody": "Clique em \"Adicionar\" para configurar o primeiro canal de notificação.",
+      "emptyTitle": "Nenhum canal configurado",
+      "error": "Erro",
+      "inactive": "Inativo",
+      "sent": "Enviada",
+      "subtitle": "Defina onde receber alertas (e-mail, Slack, Mattermost, etc.) em caso de erro ou de sucesso.",
+      "testTooltip": "Enviar uma notificação de teste",
+      "title": "Canais de notificação",
+      "usedByNone": "Nenhuma",
+      "usedByTasks_one": "{{count}} tarefa",
+      "usedByTasks_other": "{{count}} tarefas"
+    }
+  },
+  "progress": {
+    "failed": "Falha",
+    "finished": "Concluído",
+    "title": "Progresso em tempo real",
+    "waiting": "À espera dos registos..."
+  },
+  "remotes": {
+    "form": {
+      "advancedGroup": "Tipos avançados (configuração manual)",
+      "back": "Voltar aos armazenamentos",
+      "connectionParams": "Parâmetros de ligação",
+      "createSubmit": "Criar o armazenamento",
+      "createSubtitle": "Configure uma nova origem ou destino para as tarefas de replicação.",
+      "createTitle": "Novo armazenamento remoto",
+      "editSubtitle": "Altere os parâmetros de ligação deste armazenamento.",
+      "editTitle": "Editar o armazenamento",
+      "keepSecret": "•••••• (deixe em branco para manter)",
+      "keepSecretHelp": "Guardado de forma segura. Deixe em branco para manter o valor atual.",
+      "name": "Nome do armazenamento",
+      "nameHelp": "Identificador único deste armazenamento. Usado nas tarefas de replicação.",
+      "namePlaceholder": "ex.: backup-s3-prod",
+      "standardGroup": "Tipos standard (formulário guiado)",
+      "type": "Tipo de armazenamento",
+      "typeHelp": "Os tipos standard mostram um formulário guiado. Os tipos avançados usam pares chave/valor manuais.",
+      "typeLocked": "O tipo não pode ser alterado após a criação."
+    },
+    "generic": {
+      "addEntry": "Adicionar uma entrada",
+      "help": "Introduza os pares chave/valor correspondentes às opções de configuração rclone deste tipo de armazenamento.",
+      "keyPlaceholder": "chave (ex.: endpoint)",
+      "legend": "Configuração avançada",
+      "valuePlaceholder": "valor"
+    },
+    "list": {
+      "addTooltip": "Adicionar um novo armazenamento remoto",
+      "colUsedBy": "Usado por",
+      "colUsedByTooltip": "Número de tarefas que usam este armazenamento",
+      "deleteBlocked": "Não é possível eliminar: está a ser usado por tarefas",
+      "deleteMessage": "Esta ação é irreversível. Todos os dados de configuração deste armazenamento serão perdidos.",
+      "deleteTitle": "Eliminar este armazenamento?",
+      "deleteTooltip": "Eliminar este armazenamento",
+      "editTooltip": "Editar a configuração",
+      "emptyBody": "Clique em \"Adicionar\" para configurar o primeiro armazenamento remoto.",
+      "emptyTitle": "Nenhum armazenamento configurado",
+      "subtitle": "Configure as origens e os destinos dos ficheiros (S3, SFTP, SMB, pasta local, etc.)",
+      "testConnection": "Testar a ligação a este armazenamento",
+      "title": "Armazenamentos remotos",
+      "usedByNone": "Nenhuma",
+      "usedByTasks_one": "{{count}} tarefa",
+      "usedByTasks_other": "{{count}} tarefas"
+    },
+    "oauth": {
+      "connect": "Ligar via OAuth ({{provider}})",
+      "failed": "O fluxo OAuth falhou.",
+      "hint": "Autenticação interativa — preenche o campo « Token » automaticamente.",
+      "needCredentials": "Preencha primeiro o Client ID e o Client Secret, depois ligue-se.",
+      "popupBlocked": "Não foi possível abrir a janela OAuth. Autorize as janelas emergentes neste sítio."
+    },
+    "types": {
+      "azureblob": {
+        "fields": {
+          "account": {
+            "help": "Nome da Storage Account Azure. Deixe em branco se usar um URL SAS.",
+            "label": "Nome da conta de armazenamento",
+            "placeholder": "minhaconta"
+          },
+          "endpoint": {
+            "help": "Deixe em branco para usar o endpoint Azure predefinido.",
+            "label": "Endpoint",
+            "placeholder": "blob.core.windows.net"
+          },
+          "key": {
+            "help": "Chave partilhada da Storage Account. Deixe em branco se usar um URL SAS.",
+            "label": "Chave da conta"
+          },
+          "sas_url": {
+            "help": "URL SAS ao nível da conta ou do contentor. Alternativa à chave da conta.",
+            "label": "URL SAS",
+            "placeholder": "https://minhaconta.blob.core.windows.net/contentor?sv=..."
+          }
+        },
+        "name": "Azure Blob Storage"
+      },
+      "azurefiles": {
+        "name": "Azure Files"
+      },
+      "b2": {
+        "fields": {
+          "account": {
+            "help": "O ID da chave de aplicação (recomendado) ou o Account ID principal.",
+            "label": "Application Key ID",
+            "placeholder": "0012ab3c4d5e6f7g"
+          },
+          "endpoint": {
+            "help": "Deixe em branco para usar o endpoint predefinido.",
+            "label": "Endpoint personalizado"
+          },
+          "hard_delete": {
+            "help": "Se estiver ativa, os ficheiros são eliminados em vez de ficarem versionados ou ocultos.",
+            "label": "Eliminação definitiva",
+            "options": {
+              "false": "Não — ocultar os ficheiros (controlo de versões)",
+              "true": "Sim — eliminar definitivamente"
+            }
+          },
+          "key": {
+            "help": "O valor secreto da chave de aplicação B2.",
+            "label": "Application Key"
+          }
+        },
+        "name": "Backblaze B2"
+      },
+      "drive": {
+        "fields": {
+          "client_id": {
+            "help": "Cliente OAuth próprio para evitar o limite de pedidos partilhado do rclone.",
+            "label": "Client ID OAuth (opcional)",
+            "placeholder": "123456789-abc.apps.googleusercontent.com"
+          },
+          "client_secret": {
+            "help": "Obrigatório apenas se tiver indicado um Client ID próprio.",
+            "label": "Client Secret OAuth (opcional)"
+          },
+          "root_folder_id": {
+            "help": "ID da pasta que serve de raiz. Visível no URL do Google Drive a seguir a /folders/. Deixe em branco para a raiz.",
+            "label": "Pasta raiz (ID)",
+            "placeholder": "1aBcD2eFgH3iJkLmNoPqRsTuVwXyZ"
+          },
+          "scope": {
+            "help": "Permissão pedida à API do Google Drive.",
+            "label": "Âmbito de acesso (scope)",
+            "options": {
+              "drive": "drive — acesso completo aos ficheiros",
+              "drive.readonly": "drive.readonly — só leitura",
+              "drive.file": "drive.file — apenas ficheiros criados pelo rclone",
+              "drive.appfolder": "drive.appfolder — pasta privada do rclone",
+              "drive.metadata.readonly": "drive.metadata.readonly — só metadados"
+            }
+          },
+          "service_account_credentials": {
+            "help": "Alternativa ao token OAuth: JSON completo de uma conta de serviço Google. Útil em instalações sem interface gráfica.",
+            "label": "Conta de serviço (JSON) — alternativa sem interação",
+            "placeholder": "{\"type\":\"service_account\",\"project_id\":\"...\",\"private_key\":\"...\"}"
+          },
+          "team_drive": {
+            "help": "ID de um Shared Drive (antigo Team Drive). Deixe em branco para a unidade pessoal (My Drive).",
+            "label": "Shared Drive ID",
+            "placeholder": "0AbCdEfGhIjKlMnOpQrSt"
+          },
+          "token": {
+            "help": "Preencha o Client ID + Client Secret abaixo e clique em « Ligar via OAuth », ou cole um token JSON obtido com `rclone authorize \"drive\"`.",
+            "label": "Token OAuth (JSON)",
+            "placeholder": "{\"access_token\":\"...\",\"refresh_token\":\"...\",\"expiry\":\"...\"}"
+          }
+        },
+        "name": "Google Drive"
+      },
+      "dropbox": {
+        "fields": {
+          "client_id": {
+            "help": "Application key da sua aplicação Dropbox. Deixe em branco para usar a do rclone.",
+            "label": "App key (opcional)"
+          },
+          "client_secret": {
+            "help": "Obrigatório apenas se tiver indicado uma App key própria.",
+            "label": "App secret (opcional)"
+          },
+          "impersonate": {
+            "help": "E-mail do utilizador cuja identidade se assume. Apenas para Dropbox Business com uma conta de administrador.",
+            "label": "Impersonate (Dropbox Business)",
+            "placeholder": "user@example.com"
+          },
+          "token": {
+            "help": "Preencha a App key + App secret abaixo e clique em « Ligar via OAuth », ou cole um token JSON obtido com `rclone authorize \"dropbox\"`.",
+            "label": "Token OAuth (JSON)",
+            "placeholder": "{\"access_token\":\"...\",\"token_type\":\"bearer\",\"refresh_token\":\"...\",\"expiry\":\"...\"}"
+          }
+        },
+        "name": "Dropbox"
+      },
+      "ftp": {
+        "fields": {
+          "host": {
+            "label": "Servidor",
+            "placeholder": "ftp.example.com"
+          },
+          "pass": {
+            "label": "Palavra-passe"
+          },
+          "port": {
+            "label": "Porta"
+          },
+          "user": {
+            "label": "Utilizador",
+            "placeholder": "admin"
+          }
+        },
+        "name": "FTP"
+      },
+      "http": {
+        "name": "HTTP"
+      },
+      "local": {
+        "fields": {
+          "root": {
+            "label": "Caminho da pasta",
+            "placeholder": "/mnt/data/backups"
+          }
+        },
+        "name": "Local (pasta local)"
+      },
+      "onedrive": {
+        "name": "OneDrive"
+      },
+      "s3": {
+        "fields": {
+          "access_key_id": {
+            "label": "Access Key ID",
+            "placeholder": "AKIAIOSFODNN7EXAMPLE"
+          },
+          "acl": {
+            "help": "Ex.: private, public-read, bucket-owner-full-control",
+            "label": "ACL",
+            "placeholder": "private"
+          },
+          "endpoint": {
+            "help": "Obrigatório para Minio, Ceph e outros fornecedores que não a AWS",
+            "label": "Endpoint",
+            "placeholder": "https://s3.example.com"
+          },
+          "provider": {
+            "label": "Fornecedor",
+            "options": {
+              "AWS": "Amazon Web Services",
+              "Ceph": "Ceph",
+              "Minio": "Minio",
+              "Other": "Outro"
+            }
+          },
+          "region": {
+            "label": "Região",
+            "placeholder": "us-east-1"
+          },
+          "secret_access_key": {
+            "label": "Secret Access Key"
+          }
+        },
+        "name": "S3 (Amazon, Minio, Ceph...)"
+      },
+      "sftp": {
+        "fields": {
+          "host": {
+            "label": "Servidor",
+            "placeholder": "servidor.example.com"
+          },
+          "key_file": {
+            "help": "Caminho para o ficheiro da chave privada SSH",
+            "label": "Chave SSH (caminho)",
+            "placeholder": "/caminho/para/id_rsa"
+          },
+          "pass": {
+            "help": "Deixe em branco se usar uma chave SSH",
+            "label": "Palavra-passe"
+          },
+          "port": {
+            "label": "Porta"
+          },
+          "user": {
+            "label": "Utilizador",
+            "placeholder": "admin"
+          }
+        },
+        "name": "SFTP (SSH)"
+      },
+      "sharepoint": {
+        "fields": {
+          "client_id": {
+            "help": "ID da aplicação Azure (App Registration) com a permissão Sites.ReadWrite.All",
+            "label": "Client ID",
+            "placeholder": "00000000-0000-0000-0000-000000000000"
+          },
+          "client_secret": {
+            "help": "Segredo de cliente gerado para a App Registration Azure.",
+            "label": "Client Secret"
+          },
+          "drive_id": {
+            "help": "ID da biblioteca de documentos SharePoint. Pode obter-se no Graph Explorer: GET /sites/{site-id}/drives",
+            "label": "Drive ID do sítio SharePoint",
+            "placeholder": "b!xxxxxxxxxxxxxxxxxxxxxxxx"
+          },
+          "region": {
+            "help": "Região da cloud Microsoft a utilizar.",
+            "label": "Região",
+            "options": {
+              "cn": "China (Azure China, operado pela Vnet)",
+              "de": "Alemanha (Microsoft Cloud Deutschland)",
+              "global": "Global (predefinição)",
+              "us": "US Government (GCC)"
+            }
+          },
+          "tenant": {
+            "help": "ID do tenant Azure AD (GUID ou nome de domínio, ex.: contoso.onmicrosoft.com)",
+            "label": "Tenant ID",
+            "placeholder": "00000000-0000-0000-0000-000000000000"
+          }
+        },
+        "name": "SharePoint (Microsoft 365)"
+      },
+      "smb": {
+        "fields": {
+          "domain": {
+            "help": "Domínio Active Directory (opcional)",
+            "label": "Domínio",
+            "placeholder": "WORKGROUP"
+          },
+          "host": {
+            "label": "Servidor",
+            "placeholder": "192.168.1.100"
+          },
+          "pass": {
+            "label": "Palavra-passe"
+          },
+          "port": {
+            "label": "Porta"
+          },
+          "user": {
+            "label": "Utilizador"
+          }
+        },
+        "name": "SMB (partilha Windows)"
+      },
+      "swift": {
+        "name": "OpenStack Swift"
+      },
+      "webdav": {
+        "name": "WebDAV"
+      }
+    }
+  },
+  "restore": {
+    "confirm": "Restaurar",
+    "importFile": "Importar um ficheiro",
+    "neverStored": "nunca é guardada; usa-se só durante este restauro",
+    "overwriteWarning": "Por predefinição, o destino é a origem original da tarefa. Esta operação pode substituir ficheiros existentes.",
+    "privateKey": "Chave privada",
+    "targetPath": "Caminho de destino",
+    "targetPathPlaceholder": "pasta",
+    "targetStorage": "Armazenamento de destino",
+    "title": "Restaurar",
+    "willCopy": "Os dados de <path>{{location}}</path> serão escritos no destino abaixo.",
+    "willDecrypt": "Os dados de <path>{{location}}</path> serão desencriptados e depois escritos no destino abaixo."
+  },
+  "status": {
+    "disabled": "Desativada",
+    "failure": "Falha",
+    "running": "Em curso",
+    "skipped": "Ignorada",
+    "success": "Sucesso",
+    "unknown": "Desconhecido"
+  },
+  "tasks": {
+    "detail": {
+      "colDate": "Data",
+      "colDuration": "Duração",
+      "colStats": "Estatísticas",
+      "colStatsTooltip": "Ficheiros transferidos, volume, verificações, erros",
+      "colStatus": "Estado",
+      "colTrigger": "Iniciada por",
+      "colTriggerTooltip": "Como a execução foi iniciada",
+      "configuration": "Configuração",
+      "destination": "Destino",
+      "editTooltip": "Editar o nome, o agendamento ou as opções",
+      "emptyBody": "Clique em \"Executar\" para iniciar a primeira sincronização.",
+      "emptyTitle": "Nenhuma execução",
+      "encrypted": "Encriptado",
+      "history": "Histórico de execuções",
+      "historyCount": "({{count}} / 100 máx.)",
+      "loadingLogs": "A carregar os registos...",
+      "logs": "Registos",
+      "manualOnly": "Apenas manual",
+      "restore": "Restaurar",
+      "restoreTooltip": "Sincronizar no sentido inverso (destino para origem)",
+      "run": "Executar",
+      "source": "Origem",
+      "statChecks": "Verif.",
+      "statChecksTooltip": "Ficheiros verificados (comparados sem transferência)",
+      "statDeletes": "Elim.",
+      "statDeletesTooltip": "Ficheiros eliminados no destino",
+      "statErrors": "Err.",
+      "statErrorsTooltip": "Erros ocorridos durante a transferência",
+      "statTransfers": "Transf.",
+      "statTransfersTooltip": "Ficheiros transferidos face ao total",
+      "statVolume": "Vol.",
+      "statVolumeTooltip": "Volume total de dados transferidos",
+      "startedBy": {
+        "manual": "Manual",
+        "restore": "Restauro",
+        "scheduler": "Agendada"
+      }
+    },
+    "encryptionRequired": "É necessária uma chave pública para ativar a encriptação",
+    "form": {
+      "backToDetail": "Voltar aos detalhes",
+      "backToList": "Voltar às tarefas",
+      "createSubmit": "Criar a tarefa",
+      "createSubtitle": "Defina a origem, o destino e a frequência de sincronização.",
+      "createTitle": "Nova tarefa de replicação",
+      "cronHelp": "Expressão cron (ex.: <code>0 2 * * *</code> = todos os dias às 02:00). Deixe em branco para executar apenas manualmente.",
+      "cronHelpEdit": "Expressão cron. Deixe em branco = apenas execução manual.",
+      "cronPlaceholder": "0 2 * * *",
+      "destLegend": "Destino (para onde copiar)",
+      "destPath": "Caminho de destino",
+      "destPathPlaceholder": "arquivo/2026",
+      "destStorage": "Armazenamento de destino",
+      "editSubtitle": "Ajuste o nome, o agendamento, as opções ou as notificações.",
+      "editTitle": "Editar a tarefa",
+      "name": "Nome",
+      "pathsLocked": "Os caminhos de origem e de destino não podem ser alterados após a criação.",
+      "rcloneFlags": "Opções rclone adicionais",
+      "rcloneFlagsHelp": "Parâmetros extra passados ao rclone (opcional). Separados por espaços.",
+      "relativePathHelp": "Caminho relativo dentro do armazenamento.",
+      "schedule": "Agendamento automático",
+      "sourceLegend": "Origem (de onde copiar)",
+      "sourcePath": "Caminho de origem",
+      "sourcePathPlaceholder": "bucket/pasta",
+      "sourceStorage": "Armazenamento de origem",
+      "taskEnabled": "Tarefa ativada",
+      "taskEnabledHelp": "Se estiver desativada, o agendamento cron é ignorado.",
+      "taskName": "Nome da tarefa",
+      "taskNameHelp": "Um nome claro para identificar esta tarefa na lista.",
+      "taskNamePlaceholder": "ex.: Cópia diária de produção"
+    },
+    "list": {
+      "colActions": "Ações",
+      "colLastRun": "Última execução",
+      "colName": "Nome",
+      "colRoute": "Origem / Destino",
+      "colRouteTooltip": "Armazenamento de origem para armazenamento de destino",
+      "colSchedule": "Agendamento",
+      "colScheduleTooltip": "Frequência de execução automática (expressão cron)",
+      "deleteMessage": "A tarefa e todo o histórico de execuções serão eliminados definitivamente.",
+      "deleteTitle": "Eliminar esta tarefa?",
+      "deleteTooltip": "Eliminar esta tarefa",
+      "disableSchedule": "Desativar o agendamento automático",
+      "editTooltip": "Editar as definições",
+      "emptyBody": "Clique em \"Nova tarefa\" para agendar a primeira replicação.",
+      "emptyTitle": "Nenhuma tarefa configurada",
+      "enableSchedule": "Ativar o agendamento automático",
+      "encryptedTooltip": "Destino encriptado (age / X25519)",
+      "neverRun": "Nunca executada",
+      "new": "Nova tarefa",
+      "newTooltip": "Criar uma nova tarefa de replicação",
+      "restoreTooltip": "Restaurar: sincronizar no sentido inverso",
+      "runNow": "Executar a sincronização agora",
+      "subtitle": "Agende e acompanhe a sincronização dos seus ficheiros entre armazenamentos remotos.",
+      "title": "Tarefas de replicação",
+      "to": "para"
+    },
+    "notify": {
+      "help": "Escolha um canal para receber alertas. \"Ignorada\" significa que a tarefa não pôde começar porque a execução anterior ainda estava em curso.",
+      "label": "Notificações",
+      "none": "-- sem notificações --",
+      "notifyOn": "Notificar em caso de:",
+      "onError": "Erro",
+      "onSkipped": "Ignorada",
+      "onSuccess": "Sucesso"
+    },
+    "retry": {
+      "attempt": "tentativa {{n}} após {{seconds}}s",
+      "attempts": "Número de tentativas",
+      "attemptsHelp": "0 = sem novas tentativas. Máximo 20.",
+      "attemptsHelpShort": "0 = sem novas tentativas.",
+      "baseDelay": "Intervalo de base (segundos)",
+      "baseDelayHelp": "Multiplicado pelo número da tentativa.",
+      "legend": "Novas tentativas em caso de falha",
+      "preview_one": "Se a tarefa falhar, será repetida <bold>uma vez</bold>: {{schedule}}",
+      "preview_other": "Se a tarefa falhar, será repetida até <bold>{{count}} vezes</bold>: {{schedule}}"
+    }
+  },
+  "units": {
+    "bytes": {
+      "units": ["B", "KB", "MB", "GB", "TB"],
+      "zero": "0 B"
+    }
+  },
+  "validation": {
+    "mustBeNonEmptyNumber": "Tem de ser um número não vazio",
+    "mustBeNumber": "Tem de ser um número",
+    "required": "Obrigatório"
+  }
+}

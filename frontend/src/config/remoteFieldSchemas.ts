@@ -1,4 +1,5 @@
 import { z } from 'zod/v4';
+import i18n from '../i18n';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -448,16 +449,16 @@ export function buildZodSchema(remoteType: string, isEdit = false) {
       let fieldSchema: z.ZodType = z.string();
 
       if (field.type === 'number') {
-        fieldSchema = z.string().regex(/^\d*$/, 'Doit être un nombre');
+        fieldSchema = z.string().regex(/^\d*$/, i18n.t('validation.mustBeNumber'));
       }
 
       // En édition, les champs password peuvent être laissés vides pour conserver la valeur stockée
       const effectiveRequired = field.required && !(isEdit && field.type === 'password');
 
       if (effectiveRequired) {
-        fieldSchema = z.string().min(1, 'Requis');
+        fieldSchema = z.string().min(1, i18n.t('validation.required'));
         if (field.type === 'number') {
-          fieldSchema = z.string().regex(/^\d+$/, 'Doit être un nombre non vide');
+          fieldSchema = z.string().regex(/^\d+$/, i18n.t('validation.mustBeNonEmptyNumber'));
         }
       }
 
@@ -465,7 +466,7 @@ export function buildZodSchema(remoteType: string, isEdit = false) {
     }
 
     return z.object({
-      name: z.string().min(1, 'Requis'),
+      name: z.string().min(1, i18n.t('validation.required')),
       remote_type: z.string(),
       config: z.object(configShape),
       configEntries: z.array(z.object({ key: z.string(), value: z.string() })).optional(),
@@ -474,7 +475,7 @@ export function buildZodSchema(remoteType: string, isEdit = false) {
 
   // Advanced type — permissive config
   return z.object({
-    name: z.string().min(1, 'Requis'),
+    name: z.string().min(1, i18n.t('validation.required')),
     remote_type: z.string(),
     config: z.record(z.string(), z.string()).optional(),
     configEntries: z.array(z.object({ key: z.string(), value: z.string() })).optional(),

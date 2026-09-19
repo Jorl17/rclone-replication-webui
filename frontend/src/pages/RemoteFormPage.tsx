@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useCreateRemote, useUpdateRemote, useRemote } from '../hooks/useRemotes';
 import { ErrorBanner } from '../components/ui/ErrorBanner';
 import { StandardRemoteFields } from '../components/remotes/StandardRemoteFields';
@@ -25,6 +26,7 @@ type FormValues = {
 };
 
 export function RemoteFormPage() {
+  const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
@@ -133,42 +135,37 @@ export function RemoteFormPage() {
 
   return (
     <div className="p-8 max-w-2xl animate-fade-in">
-      {/* Back link */}
       <button onClick={() => navigate('/remotes')} className="flex items-center gap-1.5 text-sm text-surface-500 hover:text-brand-600 mb-4 transition-colors">
-        <ArrowLeft size={14} /> Retour aux stockages
+        <ArrowLeft size={14} /> {t('remotes.form.back')}
       </button>
 
       <h1 className="text-2xl font-bold text-surface-900 mb-1">
-        {isEdit ? 'Modifier le stockage' : 'Nouveau stockage distant'}
+        {isEdit ? t('remotes.form.editTitle') : t('remotes.form.createTitle')}
       </h1>
       <p className="text-sm text-surface-500 mb-6">
-        {isEdit
-          ? 'Modifiez les paramètres de connexion de ce stockage.'
-          : 'Configurez une nouvelle source ou destination pour vos tâches de réplication.'}
+        {isEdit ? t('remotes.form.editSubtitle') : t('remotes.form.createSubtitle')}
       </p>
 
       {mutationError && <div className="mb-4"><ErrorBanner message={(mutationError as Error).message} /></div>}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        {/* Name */}
         <div>
           <label className="block text-sm font-medium text-surface-700 mb-1">
-            Nom du stockage
+            {t('remotes.form.name')}
             <span className="text-red-400 ml-0.5">*</span>
           </label>
           <input
             {...register('name')}
             className="w-full border border-surface-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow"
-            placeholder="ex: backup-s3-prod"
+            placeholder={t('remotes.form.namePlaceholder')}
           />
-          <p className="text-xs text-surface-400 mt-1">Identifiant unique pour ce stockage. Utilisé dans les tâches de réplication.</p>
+          <p className="text-xs text-surface-400 mt-1">{t('remotes.form.nameHelp')}</p>
           {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
         </div>
 
-        {/* Type selector */}
         <div>
           <label className="block text-sm font-medium text-surface-700 mb-1">
-            Type de stockage
+            {t('remotes.form.type')}
             <span className="text-red-400 ml-0.5">*</span>
           </label>
           <select
@@ -176,26 +173,37 @@ export function RemoteFormPage() {
             disabled={isEdit}
             className={`w-full border border-surface-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 transition-shadow ${isEdit ? 'bg-surface-100 cursor-not-allowed text-surface-500' : ''}`}
           >
-            <optgroup label="Types standard (formulaire guidé)">
-              {STANDARD_REMOTES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+            <optgroup label={t('remotes.form.standardGroup')}>
+              {STANDARD_REMOTES.map((remoteType) => (
+                <option key={remoteType.value} value={remoteType.value}>
+                  {i18n.exists(`remotes.types.${remoteType.value}.name`)
+                    ? t(`remotes.types.${remoteType.value}.name`)
+                    : remoteType.label}
+                </option>
+              ))}
             </optgroup>
-            <optgroup label="Types avancés (configuration manuelle)">
-              {ADVANCED_REMOTE_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+            <optgroup label={t('remotes.form.advancedGroup')}>
+              {ADVANCED_REMOTE_TYPES.map((remoteType) => (
+                <option key={remoteType.value} value={remoteType.value}>
+                  {i18n.exists(`remotes.types.${remoteType.value}.name`)
+                    ? t(`remotes.types.${remoteType.value}.name`)
+                    : remoteType.label}
+                </option>
+              ))}
             </optgroup>
           </select>
           {isEdit && (
             <p className="flex items-center gap-1 text-xs text-amber-600 mt-1">
-              <Info size={12} /> Le type ne peut pas être modifié après la création.
+              <Info size={12} /> {t('remotes.form.typeLocked')}
             </p>
           )}
           {!isEdit && (
             <p className="text-xs text-surface-400 mt-1">
-              Les types standard affichent un formulaire guidé. Les types avancés utilisent des paires clé/valeur manuelles.
+              {t('remotes.form.typeHelp')}
             </p>
           )}
         </div>
 
-        {/* Adaptive config section */}
         <div className="pt-1">
           {standardSchema ? (
             <StandardRemoteFields
@@ -212,21 +220,20 @@ export function RemoteFormPage() {
           )}
         </div>
 
-        {/* Actions */}
         <div className="flex gap-3 pt-4 border-t border-surface-200">
           <button
             type="submit"
             disabled={isSubmitting}
             className="px-5 py-2.5 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors shadow-sm"
           >
-            {isEdit ? 'Enregistrer les modifications' : 'Créer le stockage'}
+            {isEdit ? t('common.saveChanges') : t('remotes.form.createSubmit')}
           </button>
           <button
             type="button"
             onClick={() => navigate('/remotes')}
             className="px-5 py-2.5 border border-surface-300 text-surface-600 rounded-lg text-sm font-medium hover:bg-surface-50 transition-colors"
           >
-            Annuler
+            {t('common.cancel')}
           </button>
         </div>
       </form>

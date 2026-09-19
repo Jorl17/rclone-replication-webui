@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { ArrowLeft, Info } from 'lucide-react';
+import { Trans, useTranslation } from 'react-i18next';
 import { useCreateTask } from '../hooks/useTasks';
 import { useRemotes } from '../hooks/useRemotes';
 import { useNotifications } from '../hooks/useNotifications';
 import { ErrorBanner } from '../components/ui/ErrorBanner';
 import { CronPreview } from '../components/ui/CronPreview';
 import { EncryptionFields } from '../components/tasks/EncryptionFields';
+import { RetryPreview } from '../components/tasks/RetryPreview';
 
 type FormValues = {
   name: string;
@@ -26,6 +28,7 @@ type FormValues = {
 };
 
 export function TaskFormPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const createTask = useCreateTask();
   const { data: remotes } = useRemotes();
@@ -45,7 +48,7 @@ export function TaskFormPage() {
 
   const onSubmit = async (values: FormValues) => {
     if (encEnabled && !encPublicKey.trim()) {
-      setEncError('Clé publique requise pour activer le chiffrement');
+      setEncError(t('tasks.encryptionRequired'));
       return;
     }
     setEncError(null);
@@ -82,65 +85,62 @@ export function TaskFormPage() {
   return (
     <div className="p-8 max-w-2xl animate-fade-in">
       <button onClick={() => navigate('/tasks')} className="flex items-center gap-1.5 text-sm text-surface-500 hover:text-brand-600 mb-4 transition-colors">
-        <ArrowLeft size={14} /> Retour aux tâches
+        <ArrowLeft size={14} /> {t('tasks.form.backToList')}
       </button>
 
-      <h1 className="text-2xl font-bold text-surface-900 mb-1">Nouvelle tâche de réplication</h1>
+      <h1 className="text-2xl font-bold text-surface-900 mb-1">{t('tasks.form.createTitle')}</h1>
       <p className="text-sm text-surface-500 mb-6">
-        Configurez la source, la destination et la fréquence de synchronisation.
+        {t('tasks.form.createSubtitle')}
       </p>
 
       {createTask.error && <div className="mb-4"><ErrorBanner message={(createTask.error as Error).message} /></div>}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-surface-700 mb-1">Nom de la tâche <span className="text-red-400">*</span></label>
-          <input {...register('name', { required: 'Requis' })} className={inputCls} placeholder="ex: Backup prod quotidien" />
-          <p className="text-xs text-surface-400 mt-1">Un nom clair pour identifier cette tâche dans la liste.</p>
+          <label className="block text-sm font-medium text-surface-700 mb-1">{t('tasks.form.taskName')} <span className="text-red-400">*</span></label>
+          <input {...register('name', { required: t('validation.required') })} className={inputCls} placeholder={t('tasks.form.taskNamePlaceholder')} />
+          <p className="text-xs text-surface-400 mt-1">{t('tasks.form.taskNameHelp')}</p>
           {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
         </div>
 
-        {/* Source */}
         <fieldset className="border border-surface-200 rounded-lg p-4 space-y-3">
-          <legend className="text-xs font-semibold text-surface-500 uppercase tracking-wider px-1">Source (d'où copier)</legend>
+          <legend className="text-xs font-semibold text-surface-500 uppercase tracking-wider px-1">{t('tasks.form.sourceLegend')}</legend>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-1">Stockage source <span className="text-red-400">*</span></label>
-              <select {...register('source_remote_id', { required: 'Requis' })} className={inputCls}>
-                <option value="">-- choisir --</option>
+              <label className="block text-sm font-medium text-surface-700 mb-1">{t('tasks.form.sourceStorage')} <span className="text-red-400">*</span></label>
+              <select {...register('source_remote_id', { required: t('validation.required') })} className={inputCls}>
+                <option value="">{t('common.choose')}</option>
                 {remotes?.map(r => <option key={r.id} value={r.id}>{r.name} ({r.remote_type})</option>)}
               </select>
               {errors.source_remote_id && <p className="text-red-500 text-xs mt-1">{errors.source_remote_id.message}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-1">Chemin source</label>
-              <input {...register('source_path')} className={`${inputCls} font-mono`} placeholder="bucket/dossier" />
-              <p className="text-xs text-surface-400 mt-1">Chemin relatif dans le stockage.</p>
+              <label className="block text-sm font-medium text-surface-700 mb-1">{t('tasks.form.sourcePath')}</label>
+              <input {...register('source_path')} className={`${inputCls} font-mono`} placeholder={t('tasks.form.sourcePathPlaceholder')} />
+              <p className="text-xs text-surface-400 mt-1">{t('tasks.form.relativePathHelp')}</p>
             </div>
           </div>
         </fieldset>
 
-        {/* Destination */}
         <fieldset className="border border-surface-200 rounded-lg p-4 space-y-3">
-          <legend className="text-xs font-semibold text-surface-500 uppercase tracking-wider px-1">Destination (où copier)</legend>
+          <legend className="text-xs font-semibold text-surface-500 uppercase tracking-wider px-1">{t('tasks.form.destLegend')}</legend>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-1">Stockage destination <span className="text-red-400">*</span></label>
-              <select {...register('dest_remote_id', { required: 'Requis' })} className={inputCls}>
-                <option value="">-- choisir --</option>
+              <label className="block text-sm font-medium text-surface-700 mb-1">{t('tasks.form.destStorage')} <span className="text-red-400">*</span></label>
+              <select {...register('dest_remote_id', { required: t('validation.required') })} className={inputCls}>
+                <option value="">{t('common.choose')}</option>
                 {remotes?.map(r => <option key={r.id} value={r.id}>{r.name} ({r.remote_type})</option>)}
               </select>
               {errors.dest_remote_id && <p className="text-red-500 text-xs mt-1">{errors.dest_remote_id.message}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-1">Chemin destination</label>
-              <input {...register('dest_path')} className={`${inputCls} font-mono`} placeholder="archive/2026" />
-              <p className="text-xs text-surface-400 mt-1">Chemin relatif dans le stockage.</p>
+              <label className="block text-sm font-medium text-surface-700 mb-1">{t('tasks.form.destPath')}</label>
+              <input {...register('dest_path')} className={`${inputCls} font-mono`} placeholder={t('tasks.form.destPathPlaceholder')} />
+              <p className="text-xs text-surface-400 mt-1">{t('tasks.form.relativePathHelp')}</p>
             </div>
           </div>
         </fieldset>
 
-        {/* Chiffrement */}
         <EncryptionFields
           enabled={encEnabled}
           publicKey={encPublicKey}
@@ -149,83 +149,74 @@ export function TaskFormPage() {
           error={encError}
         />
 
-        {/* Scheduling */}
         <div>
-          <label className="block text-sm font-medium text-surface-700 mb-1">Planification automatique</label>
-          <input {...register('cron_expression')} className={`${inputCls} font-mono`} placeholder="0 2 * * *" />
+          <label className="block text-sm font-medium text-surface-700 mb-1">{t('tasks.form.schedule')}</label>
+          <input {...register('cron_expression')} className={`${inputCls} font-mono`} placeholder={t('tasks.form.cronPlaceholder')} />
           <p className="flex items-start gap-1 text-xs text-surface-400 mt-1">
             <Info size={12} className="shrink-0 mt-0.5" />
-            Expression cron (ex: <code className="bg-surface-100 px-1 rounded">0 2 * * *</code> = chaque jour à 2h). Laisser vide pour déclencher uniquement manuellement.
+            <span>
+              <Trans
+                i18nKey="tasks.form.cronHelp"
+                components={{ code: <code className="bg-surface-100 px-1 rounded" /> }}
+              />
+            </span>
           </p>
           <CronPreview expression={watch('cron_expression')} />
         </div>
 
-        {/* Rclone flags */}
         <div>
-          <label className="block text-sm font-medium text-surface-700 mb-1">Options rclone supplémentaires</label>
+          <label className="block text-sm font-medium text-surface-700 mb-1">{t('tasks.form.rcloneFlags')}</label>
           <input {...register('rclone_flags')} className={`${inputCls} font-mono`} placeholder="--bwlimit 10M --transfers 4" />
-          <p className="text-xs text-surface-400 mt-1">Flags additionnels passés à rclone (optionnel). Séparés par des espaces.</p>
+          <p className="text-xs text-surface-400 mt-1">{t('tasks.form.rcloneFlagsHelp')}</p>
         </div>
 
-        {/* Retry */}
         <fieldset className="border border-surface-200 rounded-lg p-4 space-y-3">
-          <legend className="text-xs font-semibold text-surface-500 uppercase tracking-wider px-1">Retry en cas d'échec</legend>
+          <legend className="text-xs font-semibold text-surface-500 uppercase tracking-wider px-1">{t('tasks.retry.legend')}</legend>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-1">Nombre de tentatives</label>
+              <label className="block text-sm font-medium text-surface-700 mb-1">{t('tasks.retry.attempts')}</label>
               <input {...register('max_retries', { valueAsNumber: true, min: 0, max: 20 })} type="number" min={0} max={20} className={inputCls} />
-              <p className="text-xs text-surface-400 mt-1">0 = pas de retry. Max 20.</p>
+              <p className="text-xs text-surface-400 mt-1">{t('tasks.retry.attemptsHelp')}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-1">Délai de base (secondes)</label>
+              <label className="block text-sm font-medium text-surface-700 mb-1">{t('tasks.retry.baseDelay')}</label>
               <input {...register('retry_delay_seconds', { valueAsNumber: true, min: 1 })} type="number" min={1} className={inputCls} />
-              <p className="text-xs text-surface-400 mt-1">Multiplié par le n° de tentative.</p>
+              <p className="text-xs text-surface-400 mt-1">{t('tasks.retry.baseDelayHelp')}</p>
             </div>
           </div>
-          {Number(watchRetries) > 0 && (
-            <p className="text-xs text-surface-500 bg-surface-50 rounded-lg px-3 py-2">
-              Si la tâche échoue, elle sera relancée jusqu'à <strong>{watchRetries} fois</strong> :{' '}
-              {Array.from({ length: Math.min(Number(watchRetries), 3) }, (_, i) => {
-                const delay = Number(watchDelay) * (i + 1);
-                return `tentative ${i + 2} après ${delay}s`;
-              }).join(', ')}
-              {Number(watchRetries) > 3 && ', ...'}
-            </p>
-          )}
+          <RetryPreview attempts={Number(watchRetries)} delaySeconds={Number(watchDelay)} />
         </fieldset>
 
-        {/* Notifications */}
         <div>
-          <label className="block text-sm font-medium text-surface-700 mb-1">Notifications</label>
+          <label className="block text-sm font-medium text-surface-700 mb-1">{t('tasks.notify.label')}</label>
           <select {...register('notification_channel_id')} className={inputCls}>
-            <option value="">-- aucune notification --</option>
+            <option value="">{t('tasks.notify.none')}</option>
             {channels?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
           <div className={`mt-2.5 flex items-center gap-4 transition-opacity ${!selectedChannel ? 'opacity-30 pointer-events-none' : ''}`}>
-            <span className="text-xs text-surface-500">Notifier en cas de :</span>
+            <span className="text-xs text-surface-500">{t('tasks.notify.notifyOn')}</span>
             <label className="flex items-center gap-1.5 text-sm text-surface-700 cursor-pointer">
               <input type="checkbox" {...register('notify_on_error')} className="rounded border-surface-300 text-brand-600 focus:ring-brand-500" />
-              Erreur
+              {t('tasks.notify.onError')}
             </label>
             <label className="flex items-center gap-1.5 text-sm text-surface-700 cursor-pointer">
               <input type="checkbox" {...register('notify_on_success')} className="rounded border-surface-300 text-brand-600 focus:ring-brand-500" />
-              Succès
+              {t('tasks.notify.onSuccess')}
             </label>
             <label className="flex items-center gap-1.5 text-sm text-surface-700 cursor-pointer">
               <input type="checkbox" {...register('notify_on_skipped')} className="rounded border-surface-300 text-amber-600 focus:ring-amber-500" />
-              Ignorée
+              {t('tasks.notify.onSkipped')}
             </label>
           </div>
-          <p className="text-xs text-surface-400 mt-1">Choisissez un canal pour recevoir des alertes. "Ignorée" = la tâche n'a pas pu démarrer car l'exécution précédente était encore en cours.</p>
+          <p className="text-xs text-surface-400 mt-1">{t('tasks.notify.help')}</p>
         </div>
 
-        {/* Actions */}
         <div className="flex gap-3 pt-4 border-t border-surface-200">
           <button type="submit" disabled={isSubmitting} className="px-5 py-2.5 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors shadow-sm">
-            Créer la tâche
+            {t('tasks.form.createSubmit')}
           </button>
           <button type="button" onClick={() => navigate('/tasks')} className="px-5 py-2.5 border border-surface-300 text-surface-600 rounded-lg text-sm font-medium hover:bg-surface-50 transition-colors">
-            Annuler
+            {t('common.cancel')}
           </button>
         </div>
       </form>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Pencil, Play, RotateCcw, ToggleLeft, ToggleRight, Trash2, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useTasks, useDeleteTask, useTriggerTask, useRestoreTask, usePatchTask } from '../hooks/useTasks';
 import { useRemotes } from '../hooks/useRemotes';
 import { StatusBadge } from '../components/ui/StatusBadge';
@@ -8,20 +9,11 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { ErrorBanner } from '../components/ui/ErrorBanner';
 import { RestoreModal } from '../components/tasks/RestoreModal';
 import { Tooltip } from '../components/ui/Tooltip';
-import cronstrue from 'cronstrue';
-
-function formatCron(expr: string | null): string {
-  if (!expr) return '—';
-  try { return cronstrue.toString(expr, { locale: 'fr' }); } catch { return expr; }
-}
-
-function formatDuration(ms: number | null): string {
-  if (ms == null) return '';
-  if (ms < 1000) return `${ms}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
-}
+import { formatCronHuman } from '../i18n';
+import { formatDateTime, formatDuration } from '../i18n/format';
 
 export function TasksPage() {
+  const { t, i18n } = useTranslation();
   const { data: tasks, isLoading, error } = useTasks();
   const deleteTask = useDeleteTask();
   const triggerTask = useTriggerTask();
@@ -33,25 +25,30 @@ export function TasksPage() {
   const [restoreId, setRestoreId] = useState<string | null>(null);
 
   const restoreTaskObj = tasks?.find(t => t.id === restoreId) ?? null;
+  const language = i18n.resolvedLanguage ?? i18n.language;
 
-  if (isLoading) return <div className="p-8 text-surface-400">Chargement...</div>;
+  const formatCron = (expr: string | null): string => {
+    if (!expr) return '—';
+    try { return formatCronHuman(expr, language); } catch { return expr; }
+  };
+
+  if (isLoading) return <div className="p-8 text-surface-400">{t('common.loading')}</div>;
 
   return (
     <div className="p-8 animate-fade-in">
-      {/* Header */}
       <div className="flex items-end justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-surface-900">Tâches de réplication</h1>
+          <h1 className="text-2xl font-bold text-surface-900">{t('tasks.list.title')}</h1>
           <p className="text-sm text-surface-500 mt-1">
-            Planifiez et suivez la synchronisation de vos fichiers entre stockages distants.
+            {t('tasks.list.subtitle')}
           </p>
         </div>
-        <Tooltip content="Créer une nouvelle tâche de réplication">
+        <Tooltip content={t('tasks.list.newTooltip')}>
           <button
             onClick={() => navigate('/tasks/new')}
             className="flex items-center gap-2 px-4 py-2.5 bg-brand-600 text-white rounded-lg hover:bg-brand-700 text-sm font-medium transition-colors shadow-sm"
           >
-            <Plus size={16} /> Nouvelle tâche
+            <Plus size={16} /> {t('tasks.list.new')}
           </button>
         </Tooltip>
       </div>
@@ -62,19 +59,19 @@ export function TasksPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-surface-50 border-b border-surface-200">
-              <th className="text-left px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wider">Nom</th>
+              <th className="text-left px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wider">{t('tasks.list.colName')}</th>
               <th className="text-left px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wider">
-                <Tooltip content="Stockage source vers stockage destination" position="bottom">
-                  <span className="cursor-help border-b border-dashed border-surface-400">Source / Destination</span>
+                <Tooltip content={t('tasks.list.colRouteTooltip')} position="bottom">
+                  <span className="cursor-help border-b border-dashed border-surface-400">{t('tasks.list.colRoute')}</span>
                 </Tooltip>
               </th>
               <th className="text-left px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wider">
-                <Tooltip content="Fréquence d'exécution automatique (expression cron)" position="bottom">
-                  <span className="cursor-help border-b border-dashed border-surface-400">Planification</span>
+                <Tooltip content={t('tasks.list.colScheduleTooltip')} position="bottom">
+                  <span className="cursor-help border-b border-dashed border-surface-400">{t('tasks.list.colSchedule')}</span>
                 </Tooltip>
               </th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wider">Dernier run</th>
-              <th className="text-right px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wider">Actions</th>
+              <th className="text-left px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wider">{t('tasks.list.colLastRun')}</th>
+              <th className="text-right px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wider">{t('tasks.list.colActions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-100">
@@ -89,7 +86,7 @@ export function TasksPage() {
                     <div className="mt-1 flex items-center gap-1.5">
                       <StatusBadge status={statusVal as 'success' | 'failure' | 'running' | 'disabled' | 'unknown'} />
                       {task.encryption_enabled && (
-                        <Tooltip content="Destination chiffrée (age / X25519)">
+                        <Tooltip content={t('tasks.list.encryptedTooltip')}>
                           <span className="inline-flex items-center text-brand-600 cursor-help"><Lock size={12} /></span>
                         </Tooltip>
                       )}
@@ -97,43 +94,43 @@ export function TasksPage() {
                   </td>
                   <td className="px-5 py-3.5 text-xs font-mono">
                     <div className="text-surface-700">{task.source_remote_name}<span className="text-surface-300">:</span>{task.source_path}</div>
-                    <div className="text-surface-300 text-[10px] my-0.5">vers</div>
+                    <div className="text-surface-300 text-[10px] my-0.5">{t('tasks.list.to')}</div>
                     <div className="text-surface-700">{task.dest_remote_name}<span className="text-surface-300">:</span>{task.dest_path}</div>
                   </td>
                   <td className="px-5 py-3.5 text-surface-600 text-xs">{formatCron(task.cron_expression)}</td>
                   <td className="px-5 py-3.5 text-xs text-surface-500">
                     {task.last_run ? (
                       <div>
-                        <span>{new Date(task.last_run.started_at).toLocaleString('fr')}</span>
+                        <span>{formatDateTime(new Date(task.last_run.started_at), language)}</span>
                         {task.last_run.duration_ms != null && (
                           <span className="text-surface-400 ml-1">({formatDuration(task.last_run.duration_ms)})</span>
                         )}
                       </div>
-                    ) : <span className="text-surface-300">Jamais exécutée</span>}
+                    ) : <span className="text-surface-300">{t('tasks.list.neverRun')}</span>}
                   </td>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center justify-end gap-0.5">
-                      <Tooltip content="Lancer la synchronisation maintenant">
+                      <Tooltip content={t('tasks.list.runNow')}>
                         <button onClick={() => triggerTask.mutate(task.id)} disabled={task.running} className="p-2 text-surface-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg disabled:opacity-30 transition-colors">
                           <Play size={15} />
                         </button>
                       </Tooltip>
-                      <Tooltip content="Restaurer : synchroniser en sens inverse">
+                      <Tooltip content={t('tasks.list.restoreTooltip')}>
                         <button onClick={() => setRestoreId(task.id)} disabled={task.running} className="p-2 text-surface-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg disabled:opacity-30 transition-colors">
                           <RotateCcw size={15} />
                         </button>
                       </Tooltip>
-                      <Tooltip content={task.enabled ? 'Désactiver la planification auto' : 'Activer la planification auto'}>
+                      <Tooltip content={task.enabled ? t('tasks.list.disableSchedule') : t('tasks.list.enableSchedule')}>
                         <button onClick={() => patchTask.mutate({ id: task.id, payload: { enabled: !task.enabled } })} className="p-2 text-surface-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors">
                           {task.enabled ? <ToggleRight size={15} /> : <ToggleLeft size={15} />}
                         </button>
                       </Tooltip>
-                      <Tooltip content="Modifier les paramètres">
+                      <Tooltip content={t('tasks.list.editTooltip')}>
                         <button onClick={() => navigate(`/tasks/${task.id}/edit`)} className="p-2 text-surface-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors">
                           <Pencil size={15} />
                         </button>
                       </Tooltip>
-                      <Tooltip content="Supprimer cette tâche">
+                      <Tooltip content={t('tasks.list.deleteTooltip')}>
                         <button onClick={() => setConfirmId(task.id)} className="p-2 text-surface-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                           <Trash2 size={15} />
                         </button>
@@ -146,8 +143,8 @@ export function TasksPage() {
             {!tasks?.length && (
               <tr>
                 <td colSpan={5} className="px-5 py-12 text-center text-surface-400">
-                  <p className="text-base font-medium mb-1">Aucune tâche configurée</p>
-                  <p className="text-xs">Cliquez sur "Nouvelle tâche" pour planifier votre première réplication.</p>
+                  <p className="text-base font-medium mb-1">{t('tasks.list.emptyTitle')}</p>
+                  <p className="text-xs">{t('tasks.list.emptyBody')}</p>
                 </td>
               </tr>
             )}
@@ -157,8 +154,8 @@ export function TasksPage() {
 
       <ConfirmDialog
         open={!!confirmId}
-        title="Supprimer cette tâche ?"
-        message="La tâche et tout son historique d'exécutions seront supprimés définitivement."
+        title={t('tasks.list.deleteTitle')}
+        message={t('tasks.list.deleteMessage')}
         onConfirm={() => { if (confirmId) deleteTask.mutate(confirmId); setConfirmId(null); }}
         onCancel={() => setConfirmId(null)}
       />

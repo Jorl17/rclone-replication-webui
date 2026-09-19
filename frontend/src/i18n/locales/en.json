@@ -1,0 +1,614 @@
+{
+  "app": {
+    "name": "rclone-ui",
+    "tagline": "File replication",
+    "documentTitle": "rclone-ui — File replication",
+    "madeBy": "Made by"
+  },
+  "language": {
+    "label": "Language",
+    "native": {
+      "en": "English",
+      "fr": "Français",
+      "pt": "Português"
+    }
+  },
+  "nav": {
+    "section": "Navigation",
+    "tasks": "Tasks",
+    "tasksDesc": "Manage replications",
+    "remotes": "Storage",
+    "remotesDesc": "Sources and destinations",
+    "notifications": "Notifications",
+    "notificationsDesc": "Alerts and channels"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "save": "Save",
+    "saveChanges": "Save changes",
+    "add": "Add",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "required": "Required",
+    "choose": "-- choose --",
+    "none": "None",
+    "name": "Name",
+    "type": "Type",
+    "actions": "Actions",
+    "enabled": "Enabled"
+  },
+  "validation": {
+    "required": "Required",
+    "mustBeNumber": "Must be a number",
+    "mustBeNonEmptyNumber": "Must be a non-empty number"
+  },
+  "status": {
+    "success": "Success",
+    "failure": "Failed",
+    "running": "Running",
+    "skipped": "Skipped",
+    "disabled": "Disabled",
+    "unknown": "Unknown"
+  },
+  "units": {
+    "bytes": {
+      "zero": "0 B",
+      "units": ["B", "KB", "MB", "GB", "TB"]
+    }
+  },
+  "cron": {
+    "invalidTitle": "Invalid cron expression",
+    "invalidFallback": "Invalid expression",
+    "valid": "Valid",
+    "format5": "5 fields",
+    "format6": "6 fields (with seconds)",
+    "formatMacro": "macro",
+    "nextRuns": "Upcoming runs:"
+  },
+  "tasks": {
+    "list": {
+      "title": "Replication tasks",
+      "subtitle": "Schedule and monitor file synchronization between remote storage.",
+      "new": "New task",
+      "newTooltip": "Create a new replication task",
+      "colName": "Name",
+      "colRoute": "Source / Destination",
+      "colRouteTooltip": "Source storage to destination storage",
+      "colSchedule": "Schedule",
+      "colScheduleTooltip": "Automatic run frequency (cron expression)",
+      "colLastRun": "Last run",
+      "colActions": "Actions",
+      "to": "to",
+      "neverRun": "Never ran",
+      "encryptedTooltip": "Encrypted destination (age / X25519)",
+      "runNow": "Run the sync now",
+      "restoreTooltip": "Restore: sync in the reverse direction",
+      "disableSchedule": "Turn off automatic scheduling",
+      "enableSchedule": "Turn on automatic scheduling",
+      "editTooltip": "Edit the settings",
+      "deleteTooltip": "Delete this task",
+      "emptyTitle": "No tasks configured",
+      "emptyBody": "Click “New task” to schedule your first replication.",
+      "deleteTitle": "Delete this task?",
+      "deleteMessage": "The task and its entire run history will be permanently deleted."
+    },
+    "form": {
+      "backToList": "Back to tasks",
+      "backToDetail": "Back to details",
+      "createTitle": "New replication task",
+      "createSubtitle": "Set the source, destination, and how often to synchronize.",
+      "editTitle": "Edit task",
+      "editSubtitle": "Adjust the name, schedule, options, or notifications.",
+      "pathsLocked": "The source and destination paths cannot be changed after creation.",
+      "taskName": "Task name",
+      "taskNamePlaceholder": "e.g. Daily production backup",
+      "taskNameHelp": "A clear name so you can recognize this task in the list.",
+      "name": "Name",
+      "sourceLegend": "Source (copy from)",
+      "sourceStorage": "Source storage",
+      "sourcePath": "Source path",
+      "sourcePathPlaceholder": "bucket/folder",
+      "relativePathHelp": "Relative path inside the storage.",
+      "destLegend": "Destination (copy to)",
+      "destStorage": "Destination storage",
+      "destPath": "Destination path",
+      "destPathPlaceholder": "archive/2026",
+      "schedule": "Automatic schedule",
+      "cronPlaceholder": "0 2 * * *",
+      "cronHelp": "Cron expression (e.g. <code>0 2 * * *</code> = every day at 02:00). Leave empty to run only manually.",
+      "cronHelpEdit": "Cron expression. Leave empty for manual runs only.",
+      "rcloneFlags": "Extra rclone options",
+      "rcloneFlagsHelp": "Additional flags passed to rclone (optional). Separate them with spaces.",
+      "createSubmit": "Create task",
+      "taskEnabled": "Task enabled",
+      "taskEnabledHelp": "If disabled, the cron schedule is ignored."
+    },
+    "retry": {
+      "legend": "Retry on failure",
+      "attempts": "Number of attempts",
+      "attemptsHelp": "0 = no retries. Maximum 20.",
+      "attemptsHelpShort": "0 = no retries.",
+      "baseDelay": "Base delay (seconds)",
+      "baseDelayHelp": "Multiplied by the attempt number.",
+      "preview_one": "If the task fails, it will be retried <bold>once</bold>: {{schedule}}",
+      "preview_other": "If the task fails, it will be retried up to <bold>{{count}} times</bold>: {{schedule}}",
+      "attempt": "attempt {{n}} after {{seconds}}s"
+    },
+    "notify": {
+      "label": "Notifications",
+      "none": "-- no notifications --",
+      "notifyOn": "Notify on:",
+      "onError": "Error",
+      "onSuccess": "Success",
+      "onSkipped": "Skipped",
+      "help": "Choose a channel to receive alerts. “Skipped” means the task could not start because the previous run was still in progress."
+    },
+    "detail": {
+      "manualOnly": "Manual only",
+      "encrypted": "Encrypted",
+      "run": "Run",
+      "restore": "Restore",
+      "restoreTooltip": "Sync in the reverse direction (destination to source)",
+      "editTooltip": "Edit the name, schedule, or options",
+      "configuration": "Configuration",
+      "source": "Source",
+      "destination": "Destination",
+      "history": "Run history",
+      "historyCount": "({{count}} / 100 max)",
+      "colDate": "Date",
+      "colTrigger": "Trigger",
+      "colTriggerTooltip": "How the run was started",
+      "colStatus": "Status",
+      "colDuration": "Duration",
+      "colStats": "Statistics",
+      "colStatsTooltip": "Transferred files, volume, checks, errors",
+      "startedBy": {
+        "manual": "Manual",
+        "scheduler": "Scheduled",
+        "restore": "Restore"
+      },
+      "logs": "Logs",
+      "loadingLogs": "Loading logs...",
+      "emptyTitle": "No runs yet",
+      "emptyBody": "Click “Run” to start the first synchronization.",
+      "statTransfers": "Xfer.",
+      "statTransfersTooltip": "Files transferred out of the total",
+      "statVolume": "Vol.",
+      "statVolumeTooltip": "Total volume of data transferred",
+      "statChecks": "Checks",
+      "statChecksTooltip": "Files verified (compared without transferring)",
+      "statDeletes": "Del.",
+      "statDeletesTooltip": "Files deleted on the destination",
+      "statErrors": "Err.",
+      "statErrorsTooltip": "Errors encountered during the transfer"
+    },
+    "encryptionRequired": "A public key is required to enable encryption"
+  },
+  "progress": {
+    "title": "Live progress",
+    "finished": "Finished",
+    "failed": "Failed",
+    "waiting": "Waiting for logs..."
+  },
+  "remotes": {
+    "list": {
+      "title": "Remote storage",
+      "subtitle": "Configure your file sources and destinations (S3, SFTP, SMB, local folder, and more)",
+      "addTooltip": "Add a new remote storage",
+      "colUsedBy": "Used by",
+      "colUsedByTooltip": "Number of tasks using this storage",
+      "usedByNone": "None",
+      "usedByTasks_one": "{{count}} task",
+      "usedByTasks_other": "{{count}} tasks",
+      "testConnection": "Test the connection to this storage",
+      "editTooltip": "Edit the configuration",
+      "deleteBlocked": "Cannot delete: used by tasks",
+      "deleteTooltip": "Delete this storage",
+      "emptyTitle": "No storage configured",
+      "emptyBody": "Click “Add” to configure your first remote storage.",
+      "deleteTitle": "Delete this storage?",
+      "deleteMessage": "This cannot be undone. All configuration data for this storage will be lost."
+    },
+    "form": {
+      "back": "Back to storage",
+      "createTitle": "New remote storage",
+      "editTitle": "Edit storage",
+      "createSubtitle": "Configure a new source or destination for your replication tasks.",
+      "editSubtitle": "Change the connection settings for this storage.",
+      "name": "Storage name",
+      "namePlaceholder": "e.g. backup-s3-prod",
+      "nameHelp": "Unique identifier for this storage. Used in replication tasks.",
+      "type": "Storage type",
+      "standardGroup": "Standard types (guided form)",
+      "advancedGroup": "Advanced types (manual configuration)",
+      "typeLocked": "The type cannot be changed after creation.",
+      "typeHelp": "Standard types show a guided form. Advanced types use manual key/value pairs.",
+      "createSubmit": "Create storage",
+      "connectionParams": "Connection settings",
+      "keepSecret": "•••••• (leave blank to keep)",
+      "keepSecretHelp": "Stored securely. Leave blank to keep the current value."
+    },
+    "generic": {
+      "legend": "Advanced configuration",
+      "help": "Enter the key/value pairs that match rclone’s configuration options for this storage type.",
+      "keyPlaceholder": "key (e.g. endpoint)",
+      "valuePlaceholder": "value",
+      "addEntry": "Add an entry"
+    },
+    "oauth": {
+      "connect": "Connect with OAuth ({{provider}})",
+      "hint": "Interactive sign-in — fills the “Token” field automatically.",
+      "needCredentials": "Enter the Client ID and Client Secret first, then connect.",
+      "popupBlocked": "Could not open the OAuth window. Allow pop-ups for this site.",
+      "failed": "OAuth flow failed."
+    },
+    "types": {
+      "s3": {
+        "name": "S3 (Amazon, Minio, Ceph...)",
+        "fields": {
+          "provider": {
+            "label": "Provider",
+            "options": {
+              "AWS": "Amazon Web Services",
+              "Minio": "Minio",
+              "Ceph": "Ceph",
+              "Other": "Other"
+            }
+          },
+          "endpoint": {
+            "label": "Endpoint",
+            "placeholder": "https://s3.example.com",
+            "help": "Required for Minio, Ceph, and other non-AWS providers"
+          },
+          "region": {
+            "label": "Region",
+            "placeholder": "us-east-1"
+          },
+          "access_key_id": {
+            "label": "Access Key ID",
+            "placeholder": "AKIAIOSFODNN7EXAMPLE"
+          },
+          "secret_access_key": {
+            "label": "Secret Access Key"
+          },
+          "acl": {
+            "label": "ACL",
+            "placeholder": "private",
+            "help": "E.g. private, public-read, bucket-owner-full-control"
+          }
+        }
+      },
+      "sftp": {
+        "name": "SFTP (SSH)",
+        "fields": {
+          "host": {
+            "label": "Host",
+            "placeholder": "server.example.com"
+          },
+          "port": {
+            "label": "Port"
+          },
+          "user": {
+            "label": "Username",
+            "placeholder": "admin"
+          },
+          "pass": {
+            "label": "Password",
+            "help": "Leave blank if you are using an SSH key"
+          },
+          "key_file": {
+            "label": "SSH key (path)",
+            "placeholder": "/path/to/id_rsa",
+            "help": "Path to the SSH private key file"
+          }
+        }
+      },
+      "ftp": {
+        "name": "FTP",
+        "fields": {
+          "host": {
+            "label": "Host",
+            "placeholder": "ftp.example.com"
+          },
+          "port": {
+            "label": "Port"
+          },
+          "user": {
+            "label": "Username",
+            "placeholder": "admin"
+          },
+          "pass": {
+            "label": "Password"
+          }
+        }
+      },
+      "smb": {
+        "name": "SMB (Windows share)",
+        "fields": {
+          "host": {
+            "label": "Host",
+            "placeholder": "192.168.1.100"
+          },
+          "port": {
+            "label": "Port"
+          },
+          "user": {
+            "label": "Username"
+          },
+          "pass": {
+            "label": "Password"
+          },
+          "domain": {
+            "label": "Domain",
+            "placeholder": "WORKGROUP",
+            "help": "Active Directory domain (optional)"
+          }
+        }
+      },
+      "azureblob": {
+        "name": "Azure Blob Storage",
+        "fields": {
+          "account": {
+            "label": "Storage account name",
+            "placeholder": "mystorageaccount",
+            "help": "Azure Storage Account name. Leave blank if you are using a SAS URL."
+          },
+          "key": {
+            "label": "Account key",
+            "help": "Shared key for the Storage Account. Leave blank if you are using a SAS URL."
+          },
+          "sas_url": {
+            "label": "SAS URL",
+            "placeholder": "https://mystorageaccount.blob.core.windows.net/container?sv=...",
+            "help": "Account-level or container-level SAS URL. Alternative to the account key."
+          },
+          "endpoint": {
+            "label": "Endpoint",
+            "placeholder": "blob.core.windows.net",
+            "help": "Leave blank to use the default Azure endpoint."
+          }
+        }
+      },
+      "sharepoint": {
+        "name": "SharePoint (Microsoft 365)",
+        "fields": {
+          "tenant": {
+            "label": "Tenant ID",
+            "placeholder": "00000000-0000-0000-0000-000000000000",
+            "help": "Azure AD tenant ID (GUID or domain name, e.g. contoso.onmicrosoft.com)"
+          },
+          "client_id": {
+            "label": "Client ID",
+            "placeholder": "00000000-0000-0000-0000-000000000000",
+            "help": "Azure application (App Registration) ID with Sites.ReadWrite.All permission"
+          },
+          "client_secret": {
+            "label": "Client Secret",
+            "help": "Client secret generated for the Azure App Registration."
+          },
+          "drive_id": {
+            "label": "SharePoint site Drive ID",
+            "placeholder": "b!xxxxxxxxxxxxxxxxxxxxxxxx",
+            "help": "SharePoint document library ID. Available via Graph Explorer: GET /sites/{site-id}/drives"
+          },
+          "region": {
+            "label": "Region",
+            "help": "Microsoft cloud region to use.",
+            "options": {
+              "global": "Global (default)",
+              "de": "Germany (Microsoft Cloud Deutschland)",
+              "us": "US Government (GCC)",
+              "cn": "China (Azure China, operated by 21Vianet)"
+            }
+          }
+        }
+      },
+      "drive": {
+        "name": "Google Drive",
+        "fields": {
+          "token": {
+            "label": "OAuth token (JSON)",
+            "placeholder": "{\"access_token\":\"...\",\"refresh_token\":\"...\",\"expiry\":\"...\"}",
+            "help": "Enter Client ID + Client Secret below, then click “Connect with OAuth”, or paste a JSON token from `rclone authorize \"drive\"`."
+          },
+          "service_account_credentials": {
+            "label": "Service account (JSON) — non-interactive alternative",
+            "placeholder": "{\"type\":\"service_account\",\"project_id\":\"...\",\"private_key\":\"...\"}",
+            "help": "Alternative to the OAuth token: full JSON of a Google service account. Useful for headless deployments."
+          },
+          "scope": {
+            "label": "Access scope",
+            "help": "Permission requested from the Google Drive API.",
+            "options": {
+              "drive": "drive — full access to files",
+              "drive.readonly": "drive.readonly — read only",
+              "drive.file": "drive.file — only files created by rclone",
+              "drive.appfolder": "drive.appfolder — rclone’s private folder",
+              "drive.metadata.readonly": "drive.metadata.readonly — metadata only"
+            }
+          },
+          "team_drive": {
+            "label": "Shared Drive ID",
+            "placeholder": "0AbCdEfGhIjKlMnOpQrSt",
+            "help": "ID of a Shared Drive (formerly Team Drive). Leave blank for a standard My Drive."
+          },
+          "root_folder_id": {
+            "label": "Root folder (ID)",
+            "placeholder": "1aBcD2eFgH3iJkLmNoPqRsTuVwXyZ",
+            "help": "ID of the folder used as the root. Visible in the Google Drive URL after /folders/. Leave blank for the drive root."
+          },
+          "client_id": {
+            "label": "OAuth Client ID (optional)",
+            "placeholder": "123456789-abc.apps.googleusercontent.com",
+            "help": "Custom OAuth client to avoid rclone’s shared rate limit."
+          },
+          "client_secret": {
+            "label": "OAuth Client Secret (optional)",
+            "help": "Required only if you entered a custom Client ID."
+          }
+        }
+      },
+      "dropbox": {
+        "name": "Dropbox",
+        "fields": {
+          "token": {
+            "label": "OAuth token (JSON)",
+            "placeholder": "{\"access_token\":\"...\",\"token_type\":\"bearer\",\"refresh_token\":\"...\",\"expiry\":\"...\"}",
+            "help": "Enter App key + App secret below, then click “Connect with OAuth”, or paste a JSON token from `rclone authorize \"dropbox\"`."
+          },
+          "client_id": {
+            "label": "App key (optional)",
+            "help": "Application key of your custom Dropbox app. Leave blank to use rclone’s."
+          },
+          "client_secret": {
+            "label": "App secret (optional)",
+            "help": "Required only if you entered a custom App key."
+          },
+          "impersonate": {
+            "label": "Impersonate (Dropbox Business)",
+            "placeholder": "user@example.com",
+            "help": "Email of the user to impersonate. Only for Dropbox Business with an admin account."
+          }
+        }
+      },
+      "b2": {
+        "name": "Backblaze B2",
+        "fields": {
+          "account": {
+            "label": "Application Key ID",
+            "placeholder": "0012ab3c4d5e6f7g",
+            "help": "The application key ID (recommended) or the master Account ID."
+          },
+          "key": {
+            "label": "Application Key",
+            "help": "The secret value of the B2 application key."
+          },
+          "endpoint": {
+            "label": "Custom endpoint",
+            "help": "Leave blank to use the default endpoint."
+          },
+          "hard_delete": {
+            "label": "Permanent deletion",
+            "help": "If enabled, files are deleted instead of being versioned/hidden.",
+            "options": {
+              "false": "No — hide files (versioning)",
+              "true": "Yes — delete permanently"
+            }
+          }
+        }
+      },
+      "local": {
+        "name": "Local (local folder)",
+        "fields": {
+          "root": {
+            "label": "Folder path",
+            "placeholder": "/mnt/data/backups"
+          }
+        }
+      },
+      "azurefiles": {
+        "name": "Azure Files"
+      },
+      "onedrive": {
+        "name": "OneDrive"
+      },
+      "swift": {
+        "name": "OpenStack Swift"
+      },
+      "webdav": {
+        "name": "WebDAV"
+      },
+      "http": {
+        "name": "HTTP"
+      }
+    }
+  },
+  "notifications": {
+    "list": {
+      "title": "Notification channels",
+      "subtitle": "Choose where to receive alerts (email, Slack, Mattermost, and more) on failure or success.",
+      "addTooltip": "Add a new notification channel",
+      "colUrl": "Apprise URL",
+      "colUrlTooltip": "URL in Apprise format (protocol://...). Defines where alerts are sent.",
+      "colEnabled": "Enabled",
+      "colUsedBy": "Used by",
+      "colUsedByTooltip": "Number of tasks using this channel",
+      "active": "Active",
+      "inactive": "Inactive",
+      "usedByNone": "None",
+      "usedByTasks_one": "{{count}} task",
+      "usedByTasks_other": "{{count}} tasks",
+      "sent": "Sent",
+      "error": "Error",
+      "testTooltip": "Send a test notification",
+      "editTooltip": "Edit this channel",
+      "deleteBlocked": "Cannot delete: used by tasks",
+      "deleteTooltip": "Delete this channel",
+      "emptyTitle": "No channels configured",
+      "emptyBody": "Click “Add” to configure your first notification channel.",
+      "deleteTitle": "Delete this channel?",
+      "deleteMessage": "This cannot be undone. Tasks using it will no longer receive notifications."
+    },
+    "form": {
+      "back": "Back to notifications",
+      "createTitle": "New notification channel",
+      "editTitle": "Edit channel",
+      "createSubtitle": "Configure a channel to receive alerts by email, Slack, Mattermost, and more.",
+      "editSubtitle": "Change the settings for this notification channel.",
+      "name": "Channel name",
+      "namePlaceholder": "e.g. Infra team Mattermost alerts",
+      "nameHelp": "A clear name so you can recognize this channel in the list.",
+      "url": "Apprise URL",
+      "urlHelp": "Apprise format. Examples:<br /><code>mailto://user:pass@smtp.example.com</code> (email)<br /><code>slack://tokenA/tokenB/tokenC</code> (Slack)<br /><code>mmost://host/webhook</code> (Mattermost)",
+      "channelEnabled": "Channel enabled",
+      "channelEnabledHelp": "If disabled, no notifications will be sent through this channel.",
+      "createSubmit": "Create channel",
+      "languageHelp": "Language of the messages this channel sends. On create, this defaults to the interface language.",
+      "messageLegend": "Messages",
+      "messageHelp": "Leave the subject and body empty to use the default text in the selected language.",
+      "subject": "Subject",
+      "body": "Body",
+      "preview": "Preview",
+      "previewFailed": "The preview could not be loaded.",
+      "event": "Event",
+      "eventTest": "Test",
+      "placeholders": "Variables: {task_id}, {run_id}, {exit_code}, {logs}, {reason}"
+    }
+  },
+  "encryption": {
+    "legend": "Destination encryption",
+    "enable": "Encrypt data before sending (age / X25519)",
+    "enableHelp": "The server holds only the public key: it can encrypt but cannot decrypt. The private key is asked for only when restoring.",
+    "publicKey": "Public key",
+    "generatePair": "Generate a key pair",
+    "orPaste": "or paste an existing age public key",
+    "keepPrivate": "Keep the matching private key safe: without it, the encrypted data is permanently unrecoverable."
+  },
+  "restore": {
+    "title": "Restore",
+    "willDecrypt": "Data from <path>{{location}}</path> will be decrypted and then written to the target below.",
+    "willCopy": "Data from <path>{{location}}</path> will be written to the target below.",
+    "privateKey": "Private key",
+    "importFile": "Import a file",
+    "neverStored": "never stored, used only for this restore",
+    "targetStorage": "Target storage",
+    "targetPath": "Target path",
+    "targetPathPlaceholder": "folder",
+    "overwriteWarning": "By default, the target is the task’s original source. This operation can overwrite existing files.",
+    "confirm": "Restore"
+  },
+  "keygen": {
+    "title": "Generate a key pair",
+    "generating": "Generating...",
+    "failed": "Failed to generate the key",
+    "publicKey": "Public key (will be saved on the task)",
+    "copyPublic": "Copy the public key",
+    "privateKey": "Private key (NOT saved — store it now)",
+    "copyPrivate": "Copy the private key",
+    "warning": "This private key is the <bold>only</bold> way to decrypt your backups. It is <bold>not kept</bold> by the application and will <bold>never be shown again</bold>. Store it in a password manager.",
+    "savedConfirm": "I have saved my private key in a safe place",
+    "regenerate": "Regenerate",
+    "usePublic": "Use this public key"
+  }
+}

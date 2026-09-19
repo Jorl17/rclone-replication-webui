@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Terminal, CheckCircle2, XCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   lines: string[];
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export function LiveProgressPanel({ lines, done, status }: Props) {
+  const { t } = useTranslation();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -18,17 +20,17 @@ export function LiveProgressPanel({ lines, done, status }: Props) {
     <div className="bg-surface-950 rounded-xl overflow-hidden shadow-sm animate-slide-up">
       <div className="flex items-center justify-between px-4 py-2.5 bg-surface-900 border-b border-white/10">
         <span className="flex items-center gap-2 text-xs text-surface-400 font-mono">
-          <Terminal size={13} /> Progression en temps réel
+          <Terminal size={13} /> {t('progress.title')}
         </span>
         {done && status && (
           <span className={`flex items-center gap-1 text-xs font-medium ${status === 'success' ? 'text-emerald-400' : 'text-red-400'}`}>
-            {status === 'success' ? <><CheckCircle2 size={13} /> Terminé</> : <><XCircle size={13} /> Échec</>}
+            {status === 'success' ? <><CheckCircle2 size={13} /> {t('progress.finished')}</> : <><XCircle size={13} /> {t('progress.failed')}</>}
           </span>
         )}
       </div>
       <div className="h-64 overflow-y-auto p-4 font-mono text-xs text-surface-300 space-y-0.5">
         {lines.length === 0 && !done && (
-          <p className="text-surface-600 animate-pulse">En attente des logs...</p>
+          <p className="text-surface-600 animate-pulse">{t('progress.waiting')}</p>
         )}
         {lines.map((line, i) => (
           <div key={i} className="leading-relaxed whitespace-pre-wrap break-all">{line}</div>
